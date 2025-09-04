@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile</title>
+  <link rel="stylesheet" href="../css/profile.css" />
+</head>
+<body>
+  <div class="profile-container">
+    <h2>👤 My Profile</h2>
+
+    <!-- Profile Form -->
+    <form id="profileForm">
+      <label>Username
+        <input type="text" id="username" disabled />
+      </label>
+
+      <label>Email
+        <input type="email" id="email" />
+      </label>
+
+      <label>Language
+        <select id="language">
+          <option value="en">English</option>
+          <option value="sq">Shqip</option>
+        </select>
+      </label>
+
+      <label>Theme
+        <select id="theme">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+
+      <button type="submit">💾 Save Changes</button>
+      <p id="profileMessage"></p>
+    </form>
+
+    <!-- Password Section -->
+    <h3>🔑 Change Password</h3>
+    <form id="passwordForm">
+      <input type="password" id="currentPassword" placeholder="Current Password" required />
+      <input type="password" id="newPassword" placeholder="New Password" required />
+      <input type="password" id="confirmPassword" placeholder="Confirm New Password" required />
+      <button type="submit">Update Password</button>
+      <p id="passwordMessage"></p>
+    </form>
+  </div>
+
+  <script src="../js/profile.js"></script>
+</body>
+</html>

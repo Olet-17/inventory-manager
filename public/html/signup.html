@@ -1,0 +1,35 @@
+<!-- public/signup.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Signup - Inventory System</title>
+  <link rel="stylesheet" href="../css/signup.css" />
+</head>
+<body>
+  <div class="signup-container">
+    <h2>Sign Up</h2>
+    <form id="signupForm">
+      <input type="text" id="username" placeholder="Username" required />
+
+      <input type="password" id="password" placeholder="Password" required />
+      <!-- 🔑 Password Strength Meter -->
+      <div class="strength-meter">
+        <div id="signup-strength-bar"></div>
+      </div>
+      <p id="signup-strength-text"></p>
+
+      <select id="role" required>
+        <option value="">Select Role</option>
+        <option value="admin">Admin</option>
+        <option value="sales">Sales</option>
+      </select>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p id="message"></p>
+    <p>Already have an account? <a href="login.html">Login here</a></p>
+  </div>
+
+  <script src="../js/signup.js"></script>
+</body>
+</html>

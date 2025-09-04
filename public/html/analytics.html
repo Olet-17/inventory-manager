@@ -1,0 +1,119 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics - Admin Dashboard</title>
+  <link rel="stylesheet" href="../css/analytics.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>📊 Admin Analytics</h1>
+
+  <div id="notAdmin" style="display: none; color: red; text-align: center;">
+    ❌ Access denied. Admins only.
+  </div>
+
+<div id="chartsSection" style="display: none;">
+  <canvas id="salesByMonth" height="150"></canvas>
+  <canvas id="salesPerUser" height="150"></canvas>
+
+  <div class="chart-row">
+    <canvas id="topProducts" height="150"></canvas>
+    <canvas id="roleBreakdown" height="150"></canvas>
+  </div>
+</div>
+
+  <script src="../js/analytics.js" defer></script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics - Admin Dashboard</title>
+  <link rel="stylesheet" href="../css/analytics.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="analytics-header container">
+    <h1>📊 Admin Analytics</h1>
+
+    <div class="filters">
+      <label>
+        Year
+        <select id="yearSelect"></select>
+      </label>
+      <label>
+        User
+        <select id="userSelect">
+          <option value="">All</option>
+        </select>
+      </label>
+      <button id="refreshBtn" class="btn">Refresh</button>
+    </div>
+  </header>
+
+  <!-- KPI CARDS -->
+  <section class="kpis container">
+    <div class="kpi">
+      <div class="kpi-title">Total Revenue</div>
+      <div class="kpi-value" id="kpiRevenue">—</div>
+      <div class="kpi-sub">This month</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Units Sold</div>
+      <div class="kpi-value" id="kpiUnits">—</div>
+      <div class="kpi-sub">This month</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Active Sellers</div>
+      <div class="kpi-value" id="kpiSellers">—</div>
+      <div class="kpi-sub">Last 30 days</div>
+    </div>
+    <div class="kpi warning">
+      <div class="kpi-title">Low Stock</div>
+      <div class="kpi-value" id="kpiLowStock">—</div>
+      <div class="kpi-sub">Below threshold</div>
+    </div>
+  </section>
+
+  <!-- CHART GRID -->
+  <main class="charts container">
+    <article class="card">
+      <div class="card-head">
+        <h3>Revenue Over Time</h3>
+      </div>
+      <canvas id="revenueByMonth"></canvas>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Sales per User</h3>
+      </div>
+      <canvas id="salesPerUser"></canvas>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Top Products</h3>
+      </div>
+      <canvas id="topProducts"></canvas>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h3>Low Stock</h3>
+      </div>
+      <canvas id="lowStock"></canvas>
+    </article>
+  </main>
+
+  <div id="notAdmin" class="notice container hidden">❌ Access denied. Admins only.</div>
+
+  <script src="../js/analytics.js" defer></script>
+</body>
+</html>

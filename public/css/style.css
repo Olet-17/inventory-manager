@@ -1,0 +1,106 @@
+/* === Global Dark Theme === */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0b0c10; /* Same dark as dashboard */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #fff;
+}
+
+/* === Wrapper === */
+.login-wrapper {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+
+/* === Card Styling (Matches dashboard panels) === */
+.login-card {
+  background: #1f2833; /* Dark panel color */
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
+  border: 1px solid rgba(0, 255, 170, 0.3);
+  text-align: center;
+  animation: fadeSlideIn 0.5s ease forwards;
+}
+
+/* === Animation === */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card h2 {
+  margin-bottom: 20px;
+  color: #66fcf1; /* Same accent as dashboard titles */
+  font-weight: 600;
+}
+
+/* === Inputs === */
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid rgba(102, 252, 241, 0.4);
+  background: #0b0c10;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-card input:focus {
+  border-color: #66fcf1;
+  box-shadow: 0 0 8px #66fcf199;
+}
+
+/* === Button === */
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, #45a29e, #66fcf1);
+  color: #0b0c10;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.login-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px #66fcf199;
+}
+
+/* === Messages & Links === */
+.message {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.redirect-text {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #c5c6c7;
+}
+
+.redirect-text a {
+  color: #66fcf1;
+  text-decoration: none;
+}
+
+.redirect-text a:hover {
+  text-decoration: underline;
+}

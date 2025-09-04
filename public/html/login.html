@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Inventory System</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-card">
+    <h2>Login</h2>
+
+    <form id="loginForm">
+      <input
+        type="text"
+        id="username"
+        placeholder="Username"
+        required
+        autocomplete="username"
+      />
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        required
+        autocomplete="current-password"
+      />
+      <button type="submit">Login</button>
+    </form>
+
+    <p id="message" class="message"></p>
+
+    <p class="redirect-text">
+      Don't have an account?
+      <a href="signup.html">Sign up</a>
+    </p>
+  </div>
+</div>
+
+<script src="../js/login.js" defer></script>
+
+
+
+
+  <script>
+  console.log("Inline script loaded"); // sanity check
+</script>
+</body>
+</html>

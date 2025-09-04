@@ -1,0 +1,763 @@
+/* =========================================================
+   Inventory System – Dashboard (polished)
+   - Centered layout + responsive container
+   - Smooth, subtle hover animations
+   - Styled notifications (inline + global box)
+   - Fixed bottom-right Logout with safe-area padding
+   ========================================================= */
+
+/* ---------- Theme tokens ---------- */
+:root{
+  --bg: #0b0d10;
+  --surface: #11161d;
+  --surface-2: #0f141b;
+  --text: #e7edf5;
+  --muted: #9aa6b2;
+  --primary: #4f46e5;
+  --primary-700:#4338ca;
+  --accent: #22c55e;
+  --border: #1f2937;
+  --ring: rgba(79,70,229,.35);
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius: 14px;
+  --gap: 18px;
+  --maxw: 980px;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+@media (prefers-color-scheme: light){
+  :root{
+    --bg: #f6f7fb;
+    --surface:#ffffff;
+    --surface-2:#f1f5ff;
+    --text:#0f172a;
+    --muted:#475569;
+    --primary:#4f46e5;
+    --primary-700:#4338ca;
+    --accent:#16a34a;
+    --border:#e5e7eb;
+    --ring: rgba(79,70,229,.25);
+    --shadow: 0 10px 30px rgba(2,6,23,.08);
+  }
+}
+
+/* ---------- Base ---------- */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,.12), transparent 60%),
+    radial-gradient(1000px 600px at 110% -20%, rgba(34,197,94,.10), transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+.hidden{ display:none !important }
+.container{
+  width: min(100% - 32px, var(--maxw));
+  margin-inline: auto;
+}
+
+/* ---------- Header ---------- */
+.dashboard{ padding: 28px 0 20px; }
+.dashboard > h1{
+  margin: 0 0 16px;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-weight: 900;
+  letter-spacing:.2px;
+}
+#userRole{
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .85rem;
+  background: rgba(79,70,229,.12);
+  color: var(--primary);
+  border: 1px solid rgba(79,70,229,.25);
+}
+
+/* ---------- Panels ---------- */
+#adminPanel, #salesPanel{ width: min(100% - 32px, var(--maxw)); margin-inline:auto; }
+.panel{
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  margin-top: 18px;
+}
+.panel h2{
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing:.3px;
+}
+
+/* Panel link grid */
+.panel ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 840px){
+  .panel ul{ grid-template-columns: repeat(2, minmax(0,1fr)) }
+}
+.panel ul li a{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 20px rgba(0,0,0,.12);
+  transform: translateY(0) scale(1);
+  transition:
+    transform .18s cubic-bezier(.2,.8,.2,1),
+    box-shadow .2s ease,
+    background .2s ease,
+    border-color .2s ease;
+}
+.panel ul li a:hover{
+  background: rgba(79,70,229,.10);
+  border-color: color-mix(in lch, var(--border), var(--primary) 25%);
+  box-shadow: 0 14px 28px rgba(79,70,229,.20);
+  transform: translateY(-2px) scale(1.01);
+}
+.panel ul li a:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring), 0 8px 22px rgba(0,0,0,.15);
+}
+
+/* ---------- Notifications (inline, next to bell, smooth) ---------- */
+/* Bell wrapper */
+.notif-wrapper {
+  position: fixed; /* makes dropdown position relative to bell */
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* Bell button */
+.notif-btn {
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+.notif-btn:hover {
+  background: rgba(79, 70, 229, 0.12);
+}
+.notif-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+/* Dropdown below the bell */
+.notif-dropdown {
+  position: absolute;
+  top: 120%; /* controls vertical position below bell */
+  right: 0;  /* align to right of bell — change to 'left:0;' to align left */
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  z-index: 1000;
+
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Show state */
+.notif-dropdown.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Arrow pointing to bell */
+.notif-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 14px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--surface) transparent;
+}
+
+/* Notification items */
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.notification-item:last-child {
+  border-bottom: none;
+}
+.notification-message {
+  flex: 1;
+  font-size: 0.9rem;
+}
+.notification-delete {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.notification-delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+
+
+.notif-wrapper{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* Bell */
+.notif-btn{
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: 18px; cursor: pointer;
+}
+
+/* Dropdown BELOW the bell */
+.notif-dropdown{
+  position:absolute;
+  top:120%;      /* ↓ move closer/farther: 100%..140% */
+  right:0;       /* ↔ align to right; use left:0 to align left */
+  width:280px;
+  max-height:320px; overflow:auto;
+  background: var(--surface);
+  color: var(--text);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow: var(--shadow);
+  padding:10px;
+  z-index:1000;
+
+  opacity:0; transform: translateY(-6px);
+  pointer-events:none;
+  transition: opacity .25s ease, transform .25s ease;
+  display:none; /* hard hide by default */
+}
+.notif-dropdown.show{
+  display:block;
+  opacity:1; transform: translateY(0);
+  pointer-events:auto;
+}
+/* little arrow */
+.notif-dropdown::before{
+  content:"";
+  position:absolute; top:-6px; right:14px;
+  border:6px solid transparent;
+  border-bottom-color: var(--surface);
+  filter: drop-shadow(0 -1px 0 var(--border));
+}
+
+/* items */
+.notification-item{
+  display:flex; gap:8px; align-items:flex-start;
+  padding:6px 2px; border-bottom:1px solid var(--border);
+}
+.notification-item:last-child{ border-bottom:0 }
+.notification-message{ flex:1; font-size:.9rem }
+.notification-delete{
+  background:transparent; border:1px solid rgba(239,68,68,.35);
+  color:#ef4444; border-radius:8px; padding:2px 6px; cursor:pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- Logout button ---------- */
+button[onclick*="sessionStorage.clear"]{
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  margin: 0;
+  appearance:none;
+  border:none;
+  cursor:pointer;
+  height:44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 12px 26px var(--ring);
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, background .2s ease;
+}
+button[onclick*="sessionStorage.clear"]:hover{
+  box-shadow: 0 16px 32px var(--ring);
+  transform: translateY(-2px);
+}
+button[onclick*="sessionStorage.clear"]:active{ transform: translateY(0) }
+button[onclick*="sessionStorage.clear"]:focus-visible{
+  outline:none; box-shadow: 0 0 0 3px var(--ring), 0 10px 28px var(--ring);
+}
+
+/* ---------- Animations ---------- */
+@media (prefers-reduced-motion: no-preference){
+  .panel{ animation: cardIn .35s ease both }
+  @keyframes cardIn{
+    from{ opacity:0; transform: translateY(6px) }
+    to{ opacity:1; transform: translateY(0) }
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important }
+}
+
+
+/* Ensure dropdown is fully hidden unless opened */
+.notif-dropdown { 
+  display: none;            /* hard hide */
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+.notif-dropdown.show {
+  display: block;           /* only visible when .show is present */
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.notif-wrapper {
+  position: relative; /* keeps dropdown positioned relative to bell */
+}
+
+.notif-dropdown {
+  position: absolute;   /* not fixed */
+  top: 110%;             /* moves it right under the bell */
+  right: 0;              /* align right edge with bell */
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  z-index: 1000;
+
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  display: none; /* hidden by default */
+}
+
+.notif-dropdown.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.notif-dropdown{
+  position: absolute;
+  left: 200px;
+}
+
+/* Bell fixed at top-right of the page */
+.notif-wrapper {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  z-index: 2000; /* stays above all content */
+}
+
+.notif-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* Dropdown anchored to bell */
+.notif-dropdown {
+  position: absolute;
+  top: 110%; /* directly below bell */
+  right: 0;
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface, #1a1a1a);
+  color: var(--text, #fff);
+  border: 1px solid var(--border, #333);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  padding: 10px;
+  display: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.notif-dropdown.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
+/* Bell fixed in the page’s top-right corner */
+.notif-wrapper{
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  z-index: 2000;
+}
+
+/* Dropdown appears directly below the bell */
+.notif-dropdown{
+  position: absolute;   /* anchor to .notif-wrapper */
+  top: 110%;            /* ↓ tweak this to move closer/further */
+  right: 0;             /* ↔ align to bell's right; use left:0 to align left */
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  display: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.notif-dropdown.show{
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.notif-dropdown::before{
+  content:"";
+  position:absolute; top:-6px; right:14px;
+  border:6px solid transparent;
+  border-bottom-color: var(--surface);
+  filter: drop-shadow(0 -1px 0 var(--border));
+}
+
+
+/* Bell fixed in the page’s top-right corner */
+.notif-wrapper{
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  z-index: 2000;
+}
+
+/* Dropdown appears directly below the bell */
+.notif-dropdown{
+  position: absolute;   /* anchor to .notif-wrapper */
+  top: 110%;            /* adjust spacing from the bell */
+  right: 0;             /* use left:0 to align to the bell’s left edge */
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  display: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.notif-dropdown.show{
+  display: block;              /* add !important if you keep .hidden in HTML */
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.notif-dropdown::before{
+  content:"";
+  position:absolute; top:-6px; right:14px;
+  border:6px solid transparent;
+  border-bottom-color: var(--surface);
+  filter: drop-shadow(0 -1px 0 var(--border));
+}
+/* Top-right notifications panel (used when writing to #notificationBox) */
+#notificationBox{
+  position: fixed;                 /* anchor to viewport */
+  top: 64px;                       /* sits below the top bar / bell */
+  right: 20px;
+  width: min(340px, 92vw);
+  max-height: 320px;
+  overflow-y: auto;
+
+  background: var(--surface, #11161d);
+  color: var(--text, #e7edf5);
+  border: 1px solid var(--border, #1f2937);
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(0,0,0,.35);
+  padding: 10px;
+  z-index: 2000;
+
+ 
+}
+
+#notificationBox.show{
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
+#notificationBox::before{
+  content:"";
+  position:absolute; top:-6px; right:16px;
+  border:6px solid transparent;
+  border-bottom-color: var(--surface, #11161d);
+  filter: drop-shadow(0 -1px 0 var(--border, #1f2937));
+}
+
+
+#notificationBox .notif-item{
+  display:flex; align-items:flex-start; gap:8px;
+  padding:8px 4px;
+  border-bottom:1px solid var(--border, #1f2937);
+}
+
+
+#notificationBox .notif-item:last-child{ border-bottom:0 }
+
+#notificationBox .msg{ flex:1; font-size:.92rem; line-height:1.3 }
+
+#notificationBox .del{
+  background:transparent;
+  border:1px solid rgba(239,68,68,.35);
+  color:#ef4444;
+  border-radius:8px;
+  padding:2px 6px;
+  cursor:pointer;
+}
+#notificationBox .del:hover{ background:rgba(239,68,68,.15) } 
+
+/* Navbar wrapper */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1c1f26; /* Dark background */
+  padding: 10px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Left, center, right sections */
+.nav-left,
+.nav-center,
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Search bar styling */
+.nav-center input {
+  padding: 8px 12px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background-color: #2b2f3a; /* Dark input background */
+  color: #f5f5f5;            /* Light text */
+  width: 320px;
+  outline: none;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.nav-center input:focus {
+  border-color: #4a90e2;  /* Accent blue border on focus */
+  background-color: #232731;
+}
+
+.nav-center input::placeholder {
+  color: #aaa; /* Softer placeholder */
+}
+
+/* Nav right links if you re-enable them later */
+.nav-right a {
+  margin-left: 20px;
+  color: #f5f5f5;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-right a:hover {
+  color: #4a90e2;
+}
+
+/* Navbar wrapper */
+.navbar {
+  display: flex;
+  justify-content: center;   /* Center everything horizontally */
+  align-items: center;
+  background-color: #1c1f26;
+  padding: 12px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Force nav-center to be centered */
+.nav-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Search bar styling */
+.nav-center input {
+  padding: 10px 14px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background-color: #2b2f3a;
+  color: #f5f5f5;
+  width: 400px;              /* Wider for visibility */
+  outline: none;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  text-align: left;
+}
+
+.nav-center input:focus {
+  border-color: #4a90e2;
+  background-color: #232731;
+}
+
+.nav-center input::placeholder {
+  color: #aaa;
+}
+
+/* Hide left and right so only center shows */
+.nav-left, .nav-right {
+  display: none;
+}
+
+
+
+
+
+/* container should be relatively positioned in your navbar */
+.nav-center { position: relative; }
+
+/* dropdown */
+.search-results{
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 460px;
+  width: 560px;      /* tweak to your layout */
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--surface, #11161d);
+  border: 1px solid var(--border, #1f2937);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+  display: none;
+  z-index: 3000;
+}
+
+.sr-item{
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text, #e7edf5);
+  text-decoration: none;
+  transition: background .15s ease;
+}
+.sr-item:hover, .sr-item.active{ background: rgba(79,70,229,.15); }
+.sr-item .sr-icon{ font-size: 18px; text-align:center; opacity:.9 }
+.sr-item .sr-name{ font-weight: 700 }
+.sr-item .sr-type{
+  font-size: 12px;
+  color: var(--muted, #9aa6b2);
+  padding: 2px 8px;
+  border: 1px solid var(--border, #1f2937);
+  border-radius: 999px;
+}
+.sr-item mark{
+  background: rgba(79,70,229,.35);
+  color: inherit;
+  padding: 0 .15em;
+  border-radius: 4px;
+}
+.sr-empty{ opacity:.7; cursor: default; }

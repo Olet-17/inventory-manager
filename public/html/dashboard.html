@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Inventory System</title>
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<style>
+  .hidden {
+    display: none;
+  }
+</style>
+<!-- common/navbar.html (can be included in all pages) -->
+<nav class="navbar">
+  <div class="nav-center">
+    <input
+      type="text"
+      id="globalSearch"
+      placeholder="Search products, sales, users..."
+      autocomplete="off"
+      aria-label="Global search"
+      aria-controls="searchResults"
+      aria-expanded="false"
+    />
+    <!-- ▼ Results dropdown -->
+    <div id="searchResults" class="search-results" role="listbox"></div>
+  </div>
+</nav>
+
+  <div class="nav-right">
+    <!-- <a href="dashboard.html">Dashboard</a>
+    <a href="profile.html">Profile</a>
+    <a href="logout.html">Logout</a> -->
+  </div>
+</nav>
+
+<body>
+  <div class="dashboard">
+    <h1>Welcome, <span id="userRole"></span></h1>
+
+    <div id="adminPanel" class="panel hidden">
+      <h2>Admin Panel</h2>
+      <ul>
+        <li><a href="../html/products.html">Manage Products</a></li>
+        <li><a href="../html/viewsalesadmin.html">View Sales</a></li>
+        <li><a href="../html/manage-users.html">Manage Users</a></li>
+        <li><a href="../html/analytics.html">📊 Analytics</a></li>
+
+<!-- <a href="/api/invoice/${sale._id}" target="_blank">📄 Invoice</a> -->
+<li><a href="../html/profile.html">👤 My Profile</a></li>
+
+
+      </ul>
+    </div>
+
+    <div id="salesPanel" class="panel hidden">
+      <h2>Sales Panel</h2>
+      <ul>
+        <li><a href="../html/create-sale.html">Create Sale</a></li>
+        <li><a href="../html/mysales.html">My Sales</a></li>
+      </ul>
+    </div>
+  </div>
+
+<button onclick="sessionStorage.clear(); location.href='/html/login.html'">
+  Logout
+</button>
+
+<div class="notif-wrapper">
+  <button id="notifBtn" class="notif-btn">🔔</button>
+  <div id="notifDropdown" class="notif-dropdown"></div>
+</div>
+<div id="notificationBox"></div>
+
+
+<script>
+  window.addEventListener("DOMContentLoaded", async () => {
+    const userId = sessionStorage.getItem("userId");
+
+    if (!userId) {
+      console.warn("❌ No userId found, redirecting...");
+      window.location.href = "/html/login.html";
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/user/${userId}`);
+      const data = await res.json();
+
+      if (!res.ok || !data.user) {
+        window.location.href = "/html/login.html";
+        return;
+      }
+
+      const user = data.user;
+
+      document.getElementById("userRole").textContent = user.role;
+
+      if (user.role === "admin") {
+        document.getElementById("adminPanel").classList.remove("hidden");
+      } else {
+        document.getElementById("salesPanel").classList.remove("hidden");
+      }
+
+    } catch (err) {
+      console.error("Error loading user info:", err);
+      window.location.href = "/html/login.html";
+    }
+  });
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const bell = document.getElementById("notifBtn");
+  const box = document.getElementById("notificationBox");
+
+  if (!bell || !box) {
+    console.warn("Notification elements not found!");
+    return;
+  }
+
+  bell.addEventListener("click", async () => {
+    box.style.display = box.style.display === "none" ? "block" : "none";
+
+    if (box.style.display === "block") {
+      await loadNotifications();
+    }
+  });
+
+  async function loadNotifications() {
+    try {
+      const res = await fetch("/api/notifications");
+      const notifications = await res.json();
+
+      if (!notifications.length) {
+        box.innerHTML = "<em>No notifications</em>";
+      } else {
+        box.innerHTML = notifications
+          .map(n => `
+            <div style="border-bottom:1px solid #ccc; padding:4px 0;">
+              🔔 ${n.message}
+              <button onclick="deleteNotif('${n._id}')" 
+                      style="float:right; border:none; background:none; cursor:pointer;">
+                🗑️
+              </button>
+            </div>
+          `)
+          .join("");
+      }
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+      box.innerHTML = "<div style='color:red;'>⚠️ Failed to load</div>";
+    }
+  }
+
+  // Expose to global
+  window.deleteNotif = async function (id) {
+    try {
+      await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+      await loadNotifications(); // Refresh list after delete
+    } catch (err) {
+      alert("❌ Failed to delete notification.");
+    }
+  };
+});
+
+
+
+
+  
+</script>
+
+<!-- 
+<script>
+  const input = document.getElementById("globalSearch");
+  const box   = document.getElementById("searchResults");
+  let t;
+
+  input.addEventListener("input", () => {
+    clearTimeout(t);
+    const q = input.value.trim();
+    if (!q) return hideBox();
+
+    t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const { results = [] } = await res.json();
+        renderResults(results);
+      } catch (e) {
+        box.innerHTML = `<div class="empty">Search failed</div>`;
+        showBox();
+      }
+    }, 300); // debounce to reduce requests
+  });
+
+  function renderResults(results){
+    box.innerHTML = "";
+    if (!results.length) return showEmpty();
+
+    // Group by type label
+    const groups = results.reduce((acc, r) => {
+      (acc[r.type] ||= []).push(r);
+      return acc;
+    }, {});
+
+    Object.entries(groups).forEach(([label, items]) => {
+      const g = document.createElement("div");
+      g.className = "result-group";
+      g.textContent = label;
+      box.appendChild(g);
+
+      items.forEach(({ name, sub, link }) => {
+        const btn = document.createElement("button");
+        btn.className = "result-item";
+        btn.innerHTML = `
+          <span class="ri-title">${name}</span>
+          <span class="ri-meta">${sub || label}</span>
+        `;
+        btn.onclick = () => { window.location.href = link; };
+        box.appendChild(btn);
+      });
+    });
+
+    showBox();
+  }
+
+  document.addEventListener("click", (e) => {
+    if (!box.contains(e.target) && e.target !== input) hideBox();
+  });
+
+  function showBox(){ box.removeAttribute("hidden"); box.classList.add("show"); }
+  function hideBox(){ box.setAttribute("hidden",""); box.classList.remove("show"); }
+  function showEmpty(){
+    box.innerHTML = `<div class="empty">No results found</div>`;
+    showBox();
+  }
+</script> -->
+
+
+<script>
+(() => {
+  // --- Static index (edit to your liking) ---
+  const INDEX = [
+    // Pages (quick nav)
+    { type: "page", name: "Dashboard",       link: "/html/dashboard.html",     icon: "🏠" },
+    { type: "page", name: "Manage Products", link: "/html/products.html",      icon: "📦" },
+    { type: "page", name: "View Sales",      link: "/html/viewsalesadmin.html",icon: "🧾" },
+    { type: "page", name: "Manage Users",    link: "/html/manage-users.html",  icon: "👥" },
+    { type: "page", name: "Analytics",       link: "/html/analytics.html",     icon: "📊" },
+    { type: "page", name: "Create Sale",     link: "/html/create-sale.html",   icon: "💸" },
+    { type: "page", name: "My Sales",        link: "/html/mysales.html",       icon: "🧾" },
+    { type: "page", name: "My Profile",      link: "/html/profile.html",       icon: "👤" },
+
+    // Example “entities” (optional)
+    { type: "product", name: "Aloe Vera",    link: "/html/products.html#aloe", icon: "🪴" },
+    { type: "product", name: "Makarona1",    link: "/html/products.html#maka", icon: "🍝" },
+    { type: "user",    name: "maca",         link: "/html/manage-users.html#u-maca", icon: "🙍" },
+  ];
+
+  const input = document.getElementById("globalSearch");
+  const box   = document.getElementById("searchResults");
+  if (!input || !box) return;
+
+  let activeIndex = -1; // for keyboard nav
+  let currentResults = [];
+
+  const render = (results, query) => {
+    box.innerHTML = "";
+    activeIndex = -1;
+    currentResults = results;
+
+    if (!query) { box.style.display = "none"; return; }
+
+    if (results.length === 0) {
+      box.innerHTML = `<div class="sr-item sr-empty">No results found</div>`;
+      box.style.display = "block";
+      return;
+    }
+
+    results.forEach((r, i) => {
+      const a = document.createElement("a");
+      a.href = r.link;
+      a.className = "sr-item";
+      a.setAttribute("data-idx", String(i));
+      a.innerHTML = `
+        <span class="sr-icon">${r.icon || "🔎"}</span>
+        <span class="sr-name">${highlight(r.name, query)}</span>
+        <span class="sr-type">${r.type}</span>
+      `;
+      a.addEventListener("mouseenter", () => setActive(i));
+      a.addEventListener("mouseleave", () => setActive(-1));
+      box.appendChild(a);
+    });
+
+    box.style.display = "block";
+  };
+
+  const highlight = (text, q) => {
+    const re = new RegExp(`(${escapeRegExp(q)})`, "ig");
+    return text.replace(re, "<mark>$1</mark>");
+  };
+
+  const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const search = (q) => {
+    const query = q.trim().toLowerCase();
+    if (!query) { render([], ""); return; }
+
+    // simple contains match across name & type
+    const res = INDEX.filter(x =>
+      x.name.toLowerCase().includes(query) ||
+      x.type.toLowerCase().includes(query)
+    ).slice(0, 8); // cap results
+    render(res, query);
+  };
+
+  const setActive = (idx) => {
+    activeIndex = idx;
+    [...box.querySelectorAll(".sr-item")].forEach((el, i) => {
+      el.classList.toggle("active", i === activeIndex);
+    });
+  };
+
+  const openActive = () => {
+    if (activeIndex < 0) return;
+    const el = box.querySelector(`.sr-item[data-idx="${activeIndex}"]`);
+    if (el) el.click();
+  };
+
+  // Debounce for nicer feel
+  let t;
+  input.addEventListener("input", () => {
+    clearTimeout(t);
+    t = setTimeout(() => search(input.value), 120);
+  });
+
+  // Keyboard navigation
+  input.addEventListener("keydown", (e) => {
+    const items = box.querySelectorAll(".sr-item");
+    if (box.style.display !== "block" || items.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((activeIndex + 1) % items.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((activeIndex - 1 + items.length) % items.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      openActive();
+    } else if (e.key === "Escape") {
+      box.style.display = "none";
+      activeIndex = -1;
+    }
+  });
+
+  // Hide when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!box.contains(e.target) && e.target !== input) {
+      box.style.display = "none";
+      activeIndex = -1;
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

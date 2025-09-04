@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Users (Admin)</title>
+  <link rel="stylesheet" href="../css/manage-users.css" />
+</head>
+<body>
+<h1>👥 Manage Users</h1>
+
+<div id="notAllowed" style="display: none;">
+  ❌ You are not authorized to view this page.
+</div>
+
+<table id="userTable" style="display: none;">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Last Login</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="userTableBody"></tbody>
+</table>
+
+
+
+  <script src="../js/manage-user.js" defer></script>
+</body>
+</html>

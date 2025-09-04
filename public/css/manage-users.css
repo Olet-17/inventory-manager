@@ -1,0 +1,176 @@
+/* =========================================================
+   Inventory System — Manage Users (matches dashboard/products)
+   ========================================================= */
+
+/* ---------- Theme (same tokens) ---------- */
+:root{
+  --bg:#0b0d10;
+  --surface:#11161d;
+  --surface-2:#0f141b;
+  --text:#e7edf5;
+  --muted:#9aa6b2;
+  --primary:#4f46e5;
+  --primary-700:#4338ca;
+  --accent:#22c55e;
+  --border:#1f2937;
+  --ring:rgba(79,70,229,.35);
+  --shadow:0 16px 40px rgba(0,0,0,.35);
+  --radius:14px;
+  --maxw:1080px;
+  --font:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f6f7fb; --surface:#ffffff; --surface-2:#f1f5ff; --text:#0f172a; --muted:#475569;
+    --primary:#4f46e5; --primary-700:#4338ca; --accent:#16a34a; --border:#e5e7eb;
+    --ring:rgba(79,70,229,.25); --shadow:0 16px 40px rgba(2,6,23,.08);
+  }
+}
+
+/* ---------- Base ---------- */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,.12), transparent 60%),
+    radial-gradient(1000px 600px at 110% -20%, rgba(34,197,94,.10), transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:28px 0 40px;
+}
+.container{ width:min(100% - 32px, var(--maxw)); margin-inline:auto }
+
+/* ---------- Heading ---------- */
+h1{
+  margin:0 0 16px;
+  font-size:clamp(1.6rem, 2.8vw, 2.2rem);
+  font-weight:900;
+  letter-spacing:.2px;
+  text-align:center;
+}
+
+/* ---------- Panel wrapper for table ---------- */
+#userTable{
+  width: min(100% - 32px, var(--maxw));
+  margin: 10px auto 0;
+  border-collapse: collapse;
+  background: var(--surface-2);
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  overflow:hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Header row */
+#userTable thead th{
+  text-align:left;
+  padding:14px 16px;
+  font-size:.9rem;
+  letter-spacing:.2px;
+  color:var(--text);
+  background:
+    linear-gradient(180deg, rgba(79,70,229,.12), transparent 60%),
+    var(--surface);
+  border-bottom:1px solid var(--border);
+}
+
+/* Cells */
+#userTable tbody td{
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+}
+#userTable tbody tr{ transition: background .18s ease }
+#userTable tbody tr:hover{ background: rgba(79,70,229,.06) }
+#userTable tbody tr:last-child td{ border-bottom:0 }
+
+/* Unauthorized notice */
+#notAllowed{
+  width:min(100% - 32px, 640px);
+  margin:16px auto;
+  background:rgba(239,68,68,.08);
+  border:1px solid rgba(239,68,68,.35);
+  color:#fecaca;
+  padding:12px 14px;
+  border-radius:12px;
+  box-shadow:0 10px 24px rgba(239,68,68,.15);
+  text-align:center;
+}
+
+/* ---------- Action buttons (attribute selectors) ---------- */
+#userTable button{
+  height:34px;
+  padding:0 12px;
+  border-radius:10px;
+  font-weight:700;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  cursor:pointer;
+  transition: transform .06s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+#userTable button:hover{
+  background: rgba(79,70,229,.10);
+  border-color: color-mix(in lch, var(--border), var(--primary) 28%);
+  box-shadow: 0 8px 20px rgba(79,70,229,.18);
+}
+#userTable button:active{ transform: translateY(1px) }
+#userTable button:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring) }
+
+/* Role toggle (yellow) */
+#userTable button[onclick*="toggleRole"]{
+  color:#111; background:#fbbf24; border-color:#f59e0b;
+}
+#userTable button[onclick*="toggleRole"]:hover{
+  background:#f59e0b; border-color:#d97706; color:#111;
+}
+
+/* Delete (red) */
+#userTable button[onclick*="deleteUser"]{
+  color:#fff; background:#e74c3c; border-color:#e74c3c;
+}
+#userTable button[onclick*="deleteUser"]:hover{
+  background:#d93b2b; border-color:#d93b2b;
+}
+
+/* Make "Last Login" column right-aligned if you use dates */
+#userTable td:nth-child(4){ text-align:right; white-space:nowrap }
+
+/* ---------- Mobile responsive table ---------- */
+@media (max-width: 700px){
+  #userTable, #userTable thead, #userTable tbody, #userTable th, #userTable td, #userTable tr{
+    display:block; width:100%;
+  }
+  #userTable thead{ display:none }
+  #userTable tbody tr{
+    background: var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin:10px 0;
+    overflow:hidden;
+  }
+  #userTable td{
+    position:relative;
+    padding:12px 16px 12px 44%;
+    border-bottom:1px solid var(--border);
+  }
+  #userTable td:last-child{ border-bottom:0 }
+  #userTable td::before{
+    content: attr(data-label);
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-weight:700;
+  }
+}
+
+/* ---------- Appear animation ---------- */
+@media (prefers-reduced-motion: no-preference){
+  #userTable{ animation: cardIn .35s ease both }
+  @keyframes cardIn{
+    from{ opacity:0; transform: translateY(6px) }
+    to{ opacity:1; transform: translateY(0) }
+  }
+}
