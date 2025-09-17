@@ -36,8 +36,10 @@
 </nav>
 
 <body>
+  <!-- place near your table header or top-right of the page -->
+
   <div class="dashboard">
-    <h1>Welcome, <span id="userRole"></span></h1>
+    <h1>Welcome  <span id="userRole"></span></h1>
 
     <div id="adminPanel" class="panel hidden">
       <h2>Admin Panel</h2>
@@ -72,6 +74,35 @@
   <div id="notifDropdown" class="notif-dropdown"></div>
 </div>
 <div id="notificationBox"></div>
+
+
+<div class="export-bar">
+  <div class="export-title">Reports</div>
+
+  <div class="export-actions">
+    <!-- primary one-click buttons -->
+    <a href="/api/export/sales.csv"  class="btn btn-export" data-variant="csv">CSV</a>
+    <a href="/api/export/sales.xlsx" class="btn btn-export" data-variant="xlsx">Excel</a>
+    <a href="/api/export/sales.pdf"  class="btn btn-export" data-variant="pdf">PDF</a>
+
+    <!-- dropdown for more actions -->
+    <div class="export-menu">
+      <!-- <button class="btn btn-primary" id="exportMenuBtn">
+        <span class="btn-icon">📦</span> Export <span class="caret">▾</span>
+      </button> -->
+      <div class="menu-dropdown" id="exportDropdown">
+        <a href="/api/export/sales.csv">Download CSV</a>
+        <a href="/api/export/sales.xlsx">Download Excel</a>
+        <a href="/api/export/sales.pdf">Download PDF</a>
+        <hr />
+        <button class="menu-action" id="sendReportBtn">
+          ✉️ Email Daily Report
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 <script>

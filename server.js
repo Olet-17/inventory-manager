@@ -67,6 +67,22 @@ const notificationSchema = new mongoose.Schema({
 
 const Notification = mongoose.model("Notification", notificationSchema);
 
+
+async function fetchSales({ userId, startDate, endDate } = {}) {
+  const filter = {};
+  if (userId) filter.soldBy = userId;
+  if (startDate || endDate) {
+    filter.date = {};
+    if (startDate) filter.date.$gte = new Date(startDate);
+    if (endDate)   filter.date.$lte = new Date(endDate);
+  }
+  return Sale.find(filter)
+    .populate('product', 'name price')
+    .populate('soldBy', 'username')
+    .sort({ date: -1 });
+}
+
+
 // Regjistrimi i userave
 // app.post('/api/register', async (req, res) => {
 //   const { username, password, role } = req.body;
@@ -521,6 +537,351 @@ app.get('/api/user/:id', async (req, res) => {
 });
 
 
+const { Parser } = require('json2csv');
+
+app.get('/api/export/sales.csv', async (req, res) => {
+  try {
+    const sales = await fetchSales(req.query);
+    const rows = sales.map(s => ({
+      product: s.product?.name || '-',
+      quantity: s.quantity,
+      price: s.product?.price ?? '',
+      total: s.product ? (s.quantity * s.product.price).toFixed(2) : '',
+      soldBy: s.soldBy?.username || '-',
+      date: new Date(s.date).toLocaleString(),
+    }));
+    const parser = new Parser({ fields: ['product','quantity','price','total','soldBy','date'] });
+    const csv = parser.parse(rows);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=sales.csv');
+    res.status(200).send(csv);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'CSV export failed' });
+  }
+});
+
+
+const ExcelJS = require('exceljs');
+
+app.get('/api/export/sales.xlsx', async (req, res) => {
+  try {
+    const sales = await fetchSales(req.query);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Sales');
+
+    ws.columns = [
+      { header: 'Product', key: 'product', width: 28 },
+      { header: 'Qty', key: 'quantity', width: 10 },
+      { header: 'Price', key: 'price', width: 12 },
+      { header: 'Total', key: 'total', width: 12 },
+      { header: 'Sold By', key: 'soldBy', width: 18 },
+      { header: 'Date', key: 'date', width: 24 }
+    ];
+
+    sales.forEach(s => ws.addRow({
+      product: s.product?.name || '-',
+      quantity: s.quantity,
+      price: s.product?.price ?? '',
+      total: s.product ? (s.quantity * s.product.price).toFixed(2) : '',
+      soldBy: s.soldBy?.username || '-',
+      date: new Date(s.date).toLocaleString(),
+    }));
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=sales.xlsx');
+
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Excel export failed' });
+  }
+});
+
+
+
+
+
+app.get('/api/export/sales.pdf', async (req, res) => {
+  try {
+    const sales = await fetchSales(req.query); // your existing function
+
+    // ===== helpers =====
+    const currency = n =>
+      new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 2
+      }).format(Number(n || 0));
+
+    const fmtDate = d =>
+      new Date(d).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+
+    // Pre-map rows for rendering
+    const rows = sales.map(s => {
+      const price = s.product?.price ?? 0;
+      const qty   = s.quantity ?? 0;
+      return {
+        product: s.product?.name ?? '-',
+        qty,
+        price,
+        total: price * qty,
+        soldBy: s.soldBy?.username ?? '-',
+        date: s.date
+      };
+    });
+
+    // Quick aggregates for summary page
+    const totalRevenue  = rows.reduce((a,r)=> a + (r.total||0), 0);
+    const unitsSold     = rows.reduce((a,r)=> a + (r.qty||0), 0);
+    const ordersCount   = rows.length;
+    const avgOrderValue = ordersCount ? totalRevenue / ordersCount : 0;
+    const sellerSet     = new Set(rows.map(r => r.soldBy).filter(Boolean));
+    const activeSellers = sellerSet.size;
+    const topProduct = (() => {
+      const m = new Map();
+      for (const r of rows) m.set(r.product, (m.get(r.product)||0) + (r.qty||0));
+      let best='-', bestQty=-1;
+      for (const [name, q] of m) if (q > bestQty) { best=name; bestQty=q; }
+      return { name: best, qty: Math.max(0,bestQty) };
+    })();
+
+    // ----- response headers -----
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="sales-report.pdf"');
+
+    // ----- doc -----
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    doc.pipe(res);
+
+    // ----- layout tokens -----
+    const startX      = doc.page.margins.left; // 40
+    const usableW     = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const tableTop    = 120;
+    const rowHeight   = 20;
+    const headerBg    = '#f3f4f6';
+    const zebraColor  = '#f9fafb';
+    const gridColor   = '#e5e7eb';
+
+    // columns (widths sum ≈ usableW)
+    const columns = [
+      { key: 'product', label: 'Product', width: 190, align: 'left'  },
+      { key: 'qty',     label: 'Qty',     width: 50,  align: 'right' },
+      { key: 'price',   label: 'Price',   width: 85,  align: 'right', format: v => currency(v) },
+      { key: 'total',   label: 'Total',   width: 95,  align: 'right', format: v => currency(v) },
+      { key: 'soldBy',  label: 'Sold By', width: 60,  align: 'left'  },
+      { key: 'date',    label: 'Date',    width: 85,  align: 'left',  format: v => fmtDate(v) }
+    ];
+    const totalTableWidth = () => columns.reduce((acc, c) => acc + c.width, 0);
+
+    // filters label (for header & cover pages)
+    const filterBits = [];
+    if (req.query.startDate) filterBits.push(`From: ${fmtDate(req.query.startDate)}`);
+    if (req.query.endDate)   filterBits.push(`To: ${fmtDate(req.query.endDate)}`);
+    if (req.query.user && req.query.user !== 'All') filterBits.push(`User: ${req.query.user}`);
+    const filterLine = filterBits.join('   •   ') || 'All data';
+
+    // ===== footer & header (safe: no negative x) =====
+    const drawFooter = () => {
+      const bottom = doc.page.height - 40;
+      const width  = usableW;
+      doc.font('Helvetica').fontSize(9).fillColor('#6b7280');
+      doc.text(`Generated ${new Date().toLocaleString()}`, startX, bottom, { width, align: 'left' });
+      doc.text(`Page ${doc.page.number}`, startX, bottom, { width, align: 'right' });
+    };
+
+    const drawHeader = (title = 'Sales Report', withFilters = true) => {
+      const topY = 40;
+      doc.font('Helvetica-Bold').fontSize(20).fillColor('#111')
+         .text(title, startX, topY, { width: usableW });
+
+      doc.moveTo(startX, topY + 30)
+         .lineTo(startX + usableW, topY + 30)
+         .strokeColor(gridColor).lineWidth(1).stroke();
+
+      if (withFilters && filterLine) {
+        doc.font('Helvetica').fontSize(10).fillColor('#6b7280')
+           .text(filterLine, startX, topY + 40, { width: usableW });
+      }
+    };
+
+    const drawTableHeader = (y) => {
+      // header background
+      doc.rect(startX, y, totalTableWidth(), rowHeight).fill(headerBg).fillColor('#111');
+
+      // header titles
+      let x = startX;
+      doc.font('Helvetica-Bold').fontSize(10);
+      columns.forEach(col => {
+        doc.text(col.label, x + 6, y + 6, {
+          width: col.width - 12,
+          align: col.align === 'right' ? 'right' : 'left'
+        });
+        x += col.width;
+      });
+
+      // underline
+      doc.moveTo(startX, y + rowHeight)
+         .lineTo(startX + totalTableWidth(), y + rowHeight)
+         .strokeColor(gridColor).lineWidth(1).stroke();
+
+      doc.fillColor('#111');
+    };
+
+    const canFit = (y, needed = rowHeight) =>
+      (y + needed) <= (doc.page.height - 60);
+
+    // ========== PAGE 1: COVER ==========
+    // simple brand mark (optional placeholder)
+    doc.roundedRect(startX, 60, 80, 40, 8).fillAndStroke('#f3f4f6', '#e5e7eb');
+    doc.fillColor('#6b7280').font('Helvetica-Bold').fontSize(10).text('Inventory', startX+14, 73);
+    doc.fillColor('#6b7280').font('Helvetica').fontSize(10).text('System', startX+14, 87);
+
+    // Title & meta
+    doc.font('Helvetica-Bold').fontSize(28).fillColor('#111827').text('Sales Report', startX, 120, { width: usableW });
+    doc.moveDown(0.5);
+    doc.font('Helvetica').fontSize(12).fillColor('#374151').text(filterLine, { width: usableW });
+    doc.moveDown(0.5);
+    doc.font('Helvetica').fontSize(10).fillColor('#6b7280')
+       .text(`Generated: ${new Date().toLocaleString()}`, { width: usableW });
+
+    // Divider + intro
+    doc.moveTo(startX, 190).lineTo(startX + usableW, 190).strokeColor('#e5e7eb').lineWidth(1).stroke();
+    doc.moveDown(1.2);
+    doc.font('Helvetica').fontSize(12).fillColor('#374151').text(
+      'This report summarizes recent sales activity and provides a detailed line-item table for export and audit. All amounts are presented in USD.',
+      { width: usableW, align: 'left' }
+    );
+
+    // Cover footer
+    doc.fontSize(9).fillColor('#6b7280')
+       .text(`Page 1`, startX, doc.page.height - 40, { width: usableW, align: 'right' });
+
+    doc.addPage();
+
+    // ========== PAGE 2: EXECUTIVE SUMMARY ==========
+    const card = (x, y, title, value, sub) => {
+      const cw = (usableW - 24) / 2;  // 2 columns with 24px gap
+      doc.save().roundedRect(x, y, cw, 88, 10).fillAndStroke('#ffffff', '#e5e7eb').restore();
+      doc.font('Helvetica-Bold').fontSize(12).fillColor('#111827').text(title, x+14, y+12, { width: cw - 28 });
+      doc.font('Helvetica-Bold').fontSize(22).fillColor('#111827').text(value, x+14, y+36, { width: cw - 28 });
+      doc.font('Helvetica').fontSize(10).fillColor('#6b7280').text(sub, x+14, y+66, { width: cw - 28 });
+    };
+
+    const left  = startX;
+    const right = startX + (usableW + 24) / 2;
+    let sy = 80;
+
+    card(left,  sy, 'Total Revenue',      currency(totalRevenue), 'All included rows');
+    card(right, sy, 'Units Sold',         String(unitsSold),      'All included rows'); sy += 104;
+    card(left,  sy, 'Active Sellers',     String(activeSellers),  'Unique sellers');
+    card(right, sy, 'Avg Order Value',    currency(avgOrderValue),'Revenue / orders');  sy += 104;
+    card(left,  sy, 'Top Product',        topProduct.name,        `${topProduct.qty} units`);
+    // You can add a sixth KPI here if you like:
+    card(right, sy, 'Orders',             String(ordersCount),    'Total orders');
+
+    sy += 124;
+    // Filters & notes
+    doc.moveTo(startX, sy).lineTo(startX + usableW, sy).strokeColor('#e5e7eb').lineWidth(1).stroke();
+    sy += 14;
+    doc.font('Helvetica-Bold').fontSize(12).fillColor('#111827').text('Filters', startX, sy); sy += 18;
+    doc.font('Helvetica').fontSize(10).fillColor('#374151').text(filterLine, startX, sy, { width: usableW }); sy += 28;
+    doc.font('Helvetica-Bold').fontSize(12).fillColor('#111827').text('Notes', startX, sy); sy += 18;
+    doc.font('Helvetica').fontSize(10).fillColor('#6b7280')
+       .text('Data aggregated from the Inventory System. Prices in USD. Times in server local time.', startX, sy, { width: usableW });
+
+    doc.fontSize(9).fillColor('#6b7280')
+       .text(`Page 2`, startX, doc.page.height - 40, { width: usableW, align: 'right' });
+
+    // ========== PAGE 3+: DETAILED TABLE ==========
+    doc.addPage();
+    drawHeader('Detailed Sales', true);
+    drawFooter();
+
+    let y = tableTop;
+    drawTableHeader(y);
+    y += rowHeight;
+
+    let totalUnits = 0;
+    let totalRevenueDetail = 0;
+
+    rows.forEach((r, idx) => {
+      if (!canFit(y, rowHeight)) {
+        doc.addPage();
+        drawHeader('Detailed Sales', true);
+        drawFooter();
+        y = tableTop;
+        drawTableHeader(y);
+        y += rowHeight;
+      }
+
+      // zebra
+      if (idx % 2 === 0) {
+        doc.rect(startX, y, totalTableWidth(), rowHeight).fill(zebraColor).fillColor('#111');
+      }
+
+      // grid line
+      doc.moveTo(startX, y).lineTo(startX + totalTableWidth(), y)
+         .strokeColor(gridColor).lineWidth(0.5).stroke();
+
+      // row content
+      let x = startX;
+      doc.font('Helvetica').fontSize(10).fillColor('#111');
+      columns.forEach(col => {
+        const raw   = r[col.key];
+        const text  = col.format ? col.format(raw) : (raw ?? '');
+        doc.text(String(text), x + 6, y + 6, {
+          width: col.width - 12,
+          align: col.align === 'right' ? 'right' : 'left',
+          ellipsis: true
+        });
+        x += col.width;
+      });
+
+      y += rowHeight;
+
+      totalUnits         += Number(r.qty || 0);
+      totalRevenueDetail += Number(r.total || 0);
+    });
+
+    // bottom grid
+    doc.moveTo(startX, y).lineTo(startX + totalTableWidth(), y)
+       .strokeColor(gridColor).lineWidth(1).stroke();
+
+    // Summary block at the end of detail pages
+    y += 18;
+    if (!canFit(y, 60)) {
+      doc.addPage();
+      drawHeader('Detailed Sales', true);
+      drawFooter();
+      y = tableTop;
+    }
+
+    doc.font('Helvetica-Bold').fontSize(12).fillColor('#111').text('Summary', startX, y);
+    y += 10;
+    doc.font('Helvetica').fontSize(11).fillColor('#111');
+    doc.text(`Total Units: ${totalUnits}`, startX, y);
+    doc.text(`Total Revenue: ${currency(totalRevenueDetail)}`, startX + 200, y);
+
+    doc.end();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'PDF export failed' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
 // GET all users (admin)
 app.get('/api/users', async (req, res) => {
   const users = await User.find({}, "-password"); // exclude passwords
@@ -738,6 +1099,56 @@ app.get('/api/search', async (req, res) => {
     res.status(500).json({ error: "Search failed" });
   }
 });
+
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,   // e.g. smtp.mailtrap.io
+  port: parseInt(process.env.SMTP_PORT || '2525', 10),
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+// helper to build CSV buffer (reuse from above)
+
+async function buildCsvBuffer() {
+  const sales = await fetchSales(); // last period or all; you can add filters
+  const rows = sales.map(s => ({
+    product: s.product?.name || '-',
+    quantity: s.quantity,
+    price: s.product?.price ?? '',
+    total: s.product ? (s.quantity * s.product.price).toFixed(2) : '',
+    soldBy: s.soldBy?.username || '-',
+    date: new Date(s.date).toLocaleString(),
+  }));
+  const csv = new Parser({ fields: ['product','quantity','price','total','soldBy','date'] }).parse(rows);
+  return Buffer.from(csv, 'utf-8');
+}
+// Runs at 08:00 every day
+cron.schedule('0 8 * * *', async () => {
+  try {
+    const csvBuffer = await buildCsvBuffer();
+    await transporter.sendMail({
+      from: '"Inventory Reports" <reports@yourapp.com>',
+      to: process.env.REPORTS_TO || 'admin@example.com',
+      subject: `Daily Sales Report - ${new Date().toLocaleDateString()}`,
+      text: 'Attached is the latest sales report (CSV).',
+      attachments: [
+        { filename: 'sales.csv', content: csvBuffer }
+      ],
+    });
+    console.log('✅ Daily report sent');
+  } catch (err) {
+    console.error('❌ Failed to send daily report:', err);
+  }
+});
+
+
+
+
 
 
 

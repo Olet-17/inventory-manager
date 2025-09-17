@@ -761,3 +761,172 @@ button[onclick*="sessionStorage.clear"]:focus-visible{
   border-radius: 4px;
 }
 .sr-empty{ opacity:.7; cursor: default; }
+
+
+/* ====== Theme tokens (match your dashboard) ====== */
+:root{
+  --bg:#0b0d10;
+  --surface:#11161d;
+  --surface-2:#0f141b;
+  --text:#e7edf5;
+  --muted:#9aa6b2;
+  --primary:#4f46e5;
+  --primary-700:#4338ca;
+  --accent:#22c55e;
+  --border:#1f2937;
+  --ring:rgba(79,70,229,.35);
+  --shadow:0 16px 40px rgba(0,0,0,.35);
+  --radius:12px;
+}
+
+/* ====== Container ====== */
+.export-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 14px;
+  margin:12px 0 18px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border:1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.export-title{
+  font-weight:800;
+  letter-spacing:.3px;
+  color:var(--text);
+  opacity:.9;
+}
+
+/* ====== Actions ====== */
+.export-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* Base button */
+.btn{
+  appearance:none;
+  border:1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  height:36px;
+  padding:0 12px;
+  border-radius:10px;
+  font-weight:700;
+  letter-spacing:.2px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex; align-items:center; gap:8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.12);
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+.btn:hover{
+  background: rgba(79,70,229,.10);
+  border-color: color-mix(in lch, var(--border), var(--primary) 28%);
+  box-shadow: 0 14px 28px rgba(79,70,229,.18);
+  transform: translateY(-1px);
+}
+.btn:active{ transform: translateY(0) }
+.btn:focus-visible{ outline:none; box-shadow: 0 0 0 3px var(--ring), 0 10px 26px var(--ring) }
+
+.btn-primary{
+  background: var(--primary);
+  border-color: var(--primary);
+  color:#fff;
+}
+.btn-primary:hover{
+  background: var(--primary-700);
+  border-color: var(--primary-700);
+}
+
+/* Variant pills for quick exports */
+.btn-export[data-variant="csv"]  { border-color:#16a34a44 }
+.btn-export[data-variant="xlsx"] { border-color:#0ea5e944 }
+.btn-export[data-variant="pdf"]  { border-color:#ef444444 }
+
+.btn-export[data-variant="csv"]:hover  { background: rgba(34,197,94,.14) }
+.btn-export[data-variant="xlsx"]:hover { background: rgba(14,165,233,.14) }
+.btn-export[data-variant="pdf"]:hover  { background: rgba(239,68,68,.14) }
+
+.btn-icon{ font-size:1rem; }
+
+/* ====== Dropdown ====== */
+.export-menu{ position:relative }
+.caret{ opacity:.8; margin-left:4px }
+
+.menu-dropdown{
+  position:absolute;
+  top:110%;
+  right:0;
+  width:220px;
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow: var(--shadow);
+  padding:8px;
+  z-index:1000;
+
+  display:none;
+  opacity:0;
+  transform: translateY(-6px);
+  pointer-events:none;
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+.menu-dropdown.show{
+  display:block;
+  opacity:1;
+  transform: translateY(0);
+  pointer-events:auto;
+}
+
+.menu-dropdown a,
+.menu-dropdown .menu-action{
+  width:100%;
+  text-align:left;
+  background:transparent;
+  color:var(--text);
+  border:0;
+  padding:10px 10px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+  display:block;
+  text-decoration:none;
+}
+.menu-dropdown a:hover,
+.menu-dropdown .menu-action:hover{
+  background: rgba(79,70,229,.10);
+}
+
+.menu-dropdown hr{
+  border:0; height:1px; background: var(--border);
+  margin:6px 0;
+}
+
+/* ====== Loading state (optional) ====== */
+.btn.is-loading{
+  pointer-events:none;
+  opacity:.7;
+  position:relative;
+}
+.btn.is-loading::after{
+  content:"";
+  width:14px; height:14px;
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;
+  animation: spin .8s linear infinite;
+  position:absolute; right:10px;
+}
+@keyframes spin{ to{ transform: rotate(360deg) } }
+
+/* ====== Responsive ====== */
+@media (max-width: 720px){
+  .export-bar{ flex-wrap:wrap; gap:12px }
+  .export-actions{ width:100%; justify-content:space-between; flex-wrap:wrap }
+}
