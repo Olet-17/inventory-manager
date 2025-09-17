@@ -1153,6 +1153,165 @@ cron.schedule('0 8 * * *', async () => {
 
 
 
+// --- 1) at top of server.js (with other requires) ---
+
+
+// make sure these models are already defined above:
+// const Sale = mongoose.model('Sale', saleSchema);
+// const Product = mongoose.model('Product', productSchema);
+
+// --- 2) ENV defaults ---
+const DAILY_SUMMARY_CRON = process.env.DAILY_SUMMARY_CRON || '0 18 * * *'; // 18:00 daily
+const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD || 5);
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || '';
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+
+// --- 3) helpers ---
+const currency = (n) =>
+  new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
+    .format(Number(n || 0));
+
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+// --- 4) compose today’s summary (Mongo queries) ---
+async function composeDailySummary() {
+  const since = startOfToday();
+
+  const sales = await Sale.find({ date: { $gte: since } })
+    .populate('product', 'name price')
+    .populate('soldBy', 'username');
+
+  const orders  = sales.length;
+  const units   = sales.reduce((a,s) => a + (s.quantity || 0), 0);
+  const revenue = sales.reduce((a,s) => a + (s.quantity || 0) * (s.product?.price || 0), 0);
+
+  // top product by units
+  const byProduct = {};
+  for (const s of sales) {
+    const key = s.product?.name || '-';
+    byProduct[key] = (byProduct[key] || 0) + (s.quantity || 0);
+  }
+  const topProductEntry = Object.entries(byProduct).sort((a,b)=>b[1]-a[1])[0];
+  const topProduct = topProductEntry ? { name: topProductEntry[0], units: topProductEntry[1] } : null;
+
+  // top seller by revenue
+  const bySeller = {};
+  for (const s of sales) {
+    const key = s.soldBy?.username || '-';
+    bySeller[key] = (bySeller[key] || 0) + (s.quantity || 0) * (s.product?.price || 0);
+  }
+  const topSellerEntry = Object.entries(bySeller).sort((a,b)=>b[1]-a[1])[0];
+  const topSeller = topSellerEntry ? { user: topSellerEntry[0], revenue: topSellerEntry[1] } : null;
+
+  const lowStockCount = await Product.countDocuments({ quantity: { $lt: LOW_STOCK_THRESHOLD } });
+
+  return {
+    orders, units, revenue,
+    topProduct, topSeller,
+    lowStockCount,
+    dateStr: new Date().toLocaleString()
+  };
+}
+
+// --- 5) posters ---
+async function postToSlack(summary) {
+  if (!SLACK_WEBHOOK_URL) return;
+
+  const blocks = [
+    { type: 'header', text: { type: 'plain_text', text: '📊 Daily Sales', emoji: true } },
+    { type: 'context', elements: [{ type: 'mrkdwn', text: `Generated: ${summary.dateStr}` }] },
+    { type: 'divider' },
+    {
+      type: 'section',
+      fields: [
+        { type: 'mrkdwn', text: `*Revenue:*\n${currency(summary.revenue)}` },
+        { type: 'mrkdwn', text: `*Orders:*\n${summary.orders}` },
+        { type: 'mrkdwn', text: `*Units:*\n${summary.units}` },
+        { type: 'mrkdwn', text: `*Low stock (< ${LOW_STOCK_THRESHOLD}):*\n${summary.lowStockCount}` }
+      ]
+    }
+  ];
+
+  if (summary.topProduct || summary.topSeller) {
+    blocks.push({ type: 'divider' });
+    if (summary.topProduct) {
+      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*Top product:* ${summary.topProduct.name} (${summary.topProduct.units} units)` } });
+    }
+    if (summary.topSeller) {
+      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*Top seller:* ${summary.topSeller.user} (${currency(summary.topSeller.revenue)})` } });
+    }
+  }
+
+  await fetch(SLACK_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ blocks })
+  });
+}
+
+async function postToDiscord(summary) {
+  if (!DISCORD_WEBHOOK_URL) return;
+  const text =
+    `**Daily Sales**\n` +
+    `Revenue: ${currency(summary.revenue)} · Orders: ${summary.orders} · Units: ${summary.units}\n` +
+    `Low stock (< ${LOW_STOCK_THRESHOLD}): ${summary.lowStockCount}\n` +
+    (summary.topProduct ? `Top product: ${summary.topProduct.name} (${summary.topProduct.units})\n` : '') +
+    (summary.topSeller  ? `Top seller: ${summary.topSeller.user} (${currency(summary.topSeller.revenue)})\n` : '') +
+    `Generated: ${summary.dateStr}`;
+
+  await fetch(DISCORD_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ content: text })
+  });
+}
+
+async function sendDailySummaryNow() {
+  const s = await composeDailySummary();
+  await Promise.allSettled([ postToSlack(s), postToDiscord(s) ]);
+  return s;
+}
+
+// --- 6) manual routes (for testing from Postman/browser) ---
+app.get('/api/admin/summary/preview', async (req, res) => {
+  try {
+    const s = await composeDailySummary();
+    res.json(s);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'preview failed' });
+  }
+});
+
+app.post('/api/admin/summary/send-now', async (req, res) => {
+  try {
+    const s = await sendDailySummaryNow();
+    res.json({ ok: true, sent: s });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'send failed' });
+  }
+});
+
+// --- 7) start the cron AFTER Mongo is connected (where you log "MongoDB Connected") ---
+// place this inside your .then(() => ...) after mongoose.connect(...)
+cron.schedule(DAILY_SUMMARY_CRON, async () => {
+  try {
+    await sendDailySummaryNow();
+    console.log('[DailySummary] sent');
+  } catch (e) {
+    console.error('[DailySummary] failed', e);
+  }
+});
+console.log(`[DailySummary] scheduled with "${DAILY_SUMMARY_CRON}"`);
+
+
+
+
 app.get('/', (req, res) => {
   res.redirect('/html/login.html');
 });
