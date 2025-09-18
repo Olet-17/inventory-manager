@@ -1286,16 +1286,74 @@ app.get('/api/admin/summary/preview', async (req, res) => {
     res.status(500).json({ error: 'preview failed' });
   }
 });
+// ---- Helper to build numbers safely
+const toMoney = n => Number(n || 0).toFixed(2);
+
+// Example implementation placeholder.
+// You already have your own version; just keep it.
+// It must return an object like:
+// { orders, units, revenue, topProduct, topSeller, lowStockCount, dateStr }
+async function sendDailySummaryNow() {
+  // TODO: replace with your real aggregation
+  return {
+    orders: 0,
+    units: 0,
+    revenue: 0,
+    topProduct: null,
+    topSeller: null,
+    lowStockCount: 7,
+    dateStr: new Date().toLocaleString()
+  };
+}
 
 app.post('/api/admin/summary/send-now', async (req, res) => {
   try {
-    const s = await sendDailySummaryNow();
-    res.json({ ok: true, sent: s });
+    if (!process.env.DISCORD_WEBHOOK_URL) {
+      return res.status(500).json({ error: 'Missing DISCORD_WEBHOOK_URL in .env' });
+    }
+
+    const summary = await sendDailySummaryNow();
+
+    // Discord embed payload
+    const discordMessage = {
+      // Optional plain text (shows if embeds can’t render)
+      content: 'Daily Sales Summary',
+      embeds: [
+        {
+          title: '📊 Daily Sales Summary',
+          color: 0x00AE86, // teal-ish
+          fields: [
+            { name: 'Orders', value: String(summary.orders ?? 0), inline: true },
+            { name: 'Units Sold', value: String(summary.units ?? 0), inline: true },
+            { name: 'Revenue', value: `$${toMoney(summary.revenue)}`, inline: true },
+            { name: 'Top Product', value: summary.topProduct ? String(summary.topProduct) : '-', inline: true },
+            { name: 'Top Seller', value: summary.topSeller ? String(summary.topSeller) : '-', inline: true },
+            { name: 'Low Stock Items', value: String(summary.lowStockCount ?? 0), inline: true },
+          ],
+          footer: { text: `Generated: ${summary.dateStr}` }
+        }
+      ]
+    };
+
+    // Node >=18 has global fetch
+    const resp = await fetch(process.env.DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(discordMessage),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => '');
+      throw new Error(`Discord webhook failed: ${resp.status} ${errText}`);
+    }
+
+    res.json({ ok: true, sent: summary });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'send failed' });
+    console.error('send-now error:', e);
+    res.status(500).json({ error: 'send failed', details: e.message });
   }
 });
+
 
 // --- 7) start the cron AFTER Mongo is connected (where you log "MongoDB Connected") ---
 // place this inside your .then(() => ...) after mongoose.connect(...)
