@@ -1368,6 +1368,37 @@ cron.schedule(DAILY_SUMMARY_CRON, async () => {
 console.log(`[DailySummary] scheduled with "${DAILY_SUMMARY_CRON}"`);
 
 
+// -------- Daily Summary Scheduler --------
+
+// Prevent double-scheduling with nodemon/hot reloads
+if (!global.__SUMMARY_JOB_STARTED__) {
+  const CRON_EXPR = process.env.SUMMARY_CRON || '0 18 * * *'; // default: 18:00 each day
+  const TIMEZONE  = process.env.TZ || 'UTC';
+
+  try {
+    cron.schedule(
+      CRON_EXPR,
+      async () => {
+        try {
+          console.log(`[summary] Running scheduled job @ ${new Date().toLocaleString()}`);
+          const result = await sendDailySummaryNow(); // <-- your existing function
+          console.log('[summary] Sent to Discord:', result);
+        } catch (err) {
+          console.error('[summary] Failed to send scheduled summary:', err);
+        }
+      },
+      { timezone: TIMEZONE }
+    );
+
+    global.__SUMMARY_JOB_STARTED__ = true;
+    console.log(`[summary] Scheduler ready. CRON="${CRON_EXPR}" TZ="${TIMEZONE}"`);
+  } catch (e) {
+    console.error('[summary] Failed to start scheduler:', e);
+  }
+}
+
+
+
 
 
 app.get('/', (req, res) => {
