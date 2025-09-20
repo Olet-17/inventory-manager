@@ -1,155 +1,5 @@
-// window.addEventListener("DOMContentLoaded", async () => {
-//   const userId = sessionStorage.getItem("userId");
-//   const notAdmin = document.getElementById("notAdmin");
-//   const chartsSection = document.getElementById("chartsSection");
-
-//   if (!userId) {
-//     return showError("❌ You must be logged in.");
-//   }
-
-//   try {
-//     const res = await fetch(`/api/user/${userId}`);
-//     const data = await res.json();
-
-//     if (!res.ok || !data.user || data.user.role !== "admin") {
-//       return showError("❌ Access denied. Admins only.");
-//     }
-
-//     chartsSection.style.display = "block";
-
-//     // ✅ 1. Sales Per Month (Real)
-//     await renderSalesByMonth();
-
-//     // ✅ 2. Sales Per User (Real)
-//     const userSalesRes = await fetch("/api/stats/sales-per-user");
-//     const userSalesData = await userSalesRes.json();
-
-//     const userLabels = userSalesData.map(entry => entry.username);
-//     const userValues = userSalesData.map(entry => entry.totalSales);
-
-//     renderBarChart("salesPerUser", "Total Sales per User", userLabels, userValues, "#2ecc71");
-
-//     // ✅ 3. Top Products (Real)
-//     const topProductsRes = await fetch("/api/stats/top-products");
-//     const topProductsData = await topProductsRes.json();
-
-//     const productLabels = topProductsData.map(p => p.name);
-//     const productValues = topProductsData.map(p => p.totalSold);
-//     const productColors = productLabels.map((_, i) =>
-//       ["#f39c12", "#e74c3c", "#9b59b6", "#1abc9c", "#2ecc71"][i % 5]
-//     );
-
-//     renderPieChart("topProducts", "Most Sold Products", productLabels, productValues, productColors);
-
-//     // ✅ 4. Role Breakdown (Dummy – replace later with real data if needed)
-//    // 🔹 Role Breakdown - Real
-// const roleRes = await fetch("/api/stats/role-breakdown");
-// const roleData = await roleRes.json();
-
-// const roleLabels = roleData.map(r => r._id);
-// const roleCounts = roleData.map(r => r.count);
-// const roleColors = roleLabels.map((role) =>
-//   role === "admin" ? "#1abc9c" : "#e74c3c"
-// );
-
-// renderDoughnutChart("roleBreakdown", "User Roles", roleLabels, roleCounts, roleColors);
-
-
-//   } catch (err) {
-//     console.error("❌ Analytics load error:", err);
-//     showError("⚠️ Failed to load analytics.");
-//   }
-
-//   // 🔧 Helper functions
-//   function showError(message) {
-//     notAdmin.textContent = message;
-//     notAdmin.style.display = "block";
-//   }
-
-//   async function renderSalesByMonth(year = new Date().getFullYear()) {
-//     const res = await fetch(`/api/stats/sales-by-month?year=${year}`);
-//     const stats = await res.json();
-
-//     new Chart(document.getElementById("salesByMonth"), {
-//       type: "bar",
-//       data: {
-//         labels: [
-//           "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-//           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-//         ],
-//         datasets: [{
-//           label: `Sales in ${stats.year}`,
-//           data: stats.sales,
-//           backgroundColor: "#3498db"
-//         }]
-//       },
-//       options: {
-//         responsive: true,
-//         scales: {
-//           y: { beginAtZero: true }
-//         }
-//       }
-//     });
-//   }
-
-//   function renderBarChart(canvasId, label, labels, data, color) {
-//     new Chart(document.getElementById(canvasId), {
-//       type: "bar",
-//       data: {
-//         labels,
-//         datasets: [{
-//           label,
-//           data,
-//           backgroundColor: color
-//         }]
-//       },
-//       options: {
-//         responsive: true,
-//         scales: {
-//           y: { beginAtZero: true }
-//         }
-//       }
-//     });
-//   }
-
-//   function renderPieChart(canvasId, label, labels, data, colors) {
-//     new Chart(document.getElementById(canvasId), {
-//       type: "pie",
-//       data: {
-//         labels,
-//         datasets: [{
-//           label,
-//           data,
-//           backgroundColor: colors
-//         }]
-//       },
-//       options: {
-//         responsive: true
-//       }
-//     });
-//   }
-
-//   function renderDoughnutChart(canvasId, label, labels, data, colors) {
-//     new Chart(document.getElementById(canvasId), {
-//       type: "doughnut",
-//       data: {
-//         labels,
-//         datasets: [{
-//           label,
-//           data,
-//           backgroundColor: colors
-//         }]
-//       },
-//       options: {
-//         responsive: true
-//       }
-//     });
-//   }
-// });
-
-
 // Helper: month labels
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // Elements
 const notAdmin = document.getElementById("notAdmin");
@@ -165,10 +15,10 @@ const kpiLowStock = document.getElementById("kpiLowStock");
 
 // Charts
 let charts = {};
+let topProductsChart;
 
 // Init
 window.addEventListener("DOMContentLoaded", async () => {
-  // auth check
   const uid = sessionStorage.getItem("userId");
   if (!uid) return fail("❌ You must be logged in.");
 
@@ -193,9 +43,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     userSelect.appendChild(opt);
   });
 
-  // draw
+  // first draw
   await refresh();
-
   refreshBtn.addEventListener("click", refresh);
 });
 
@@ -208,7 +57,7 @@ async function refresh() {
   const year = yearSelect.value || new Date().getFullYear();
   const userId = userSelect.value || "";
 
-  // 1) Revenue by month (sum of price*qty)
+  // 1) Revenue by month
   const monthly = await revenueByMonth(year, userId);
   drawOrUpdate("revenueByMonth", "line", {
     labels: MONTHS,
@@ -222,7 +71,7 @@ async function refresh() {
     }]
   }, { scales: { y: { beginAtZero: true } } });
 
-  // 2) Sales per user (quantities)
+  // 2) Sales per user
   const spu = await (await fetch("/api/stats/sales-per-user")).json();
   const labelsU = spu.map(x => x.username);
   const dataU = spu.map(x => x.totalSales);
@@ -231,40 +80,200 @@ async function refresh() {
     datasets: [{ label: "Units", data: dataU, backgroundColor: "rgba(34,197,94,.8)" }]
   }, { scales: { y: { beginAtZero: true } } });
 
-  // 3) Top products (qty)
-  const top = await (await fetch("/api/stats/top-products")).json();
-  const labelsP = top.map(x => x.name);
-  const dataP = top.map(x => x.totalSold);
-  drawOrUpdate("topProducts", "pie", {
-    labels: labelsP,
-    datasets: [{ data: dataP, backgroundColor: palette(labelsP.length) }]
-  });
+  // 3) Top products
+  await renderTopProducts();
 
-  // 4) Low stock (first 6 ascending)
+  // 4) Low stock
   const products = await (await fetch("/api/products")).json();
-  const low = products.slice().sort((a,b) => a.quantity - b.quantity).slice(0, 6);
-  drawOrUpdate("lowStock", "bar", {
-    labels: low.map(p => p.name),
-    datasets: [{ label: "Qty Remaining", data: low.map(p => p.quantity), backgroundColor: "rgba(239,68,68,.8)" }]
-  }, { indexAxis: 'y', plugins: { legend: { display:false } }, scales: { x:{ beginAtZero:true } } });
+  await renderLowStock(products, { topN: 10, threshold: 5, onlyBelow: true });
 
-  // KPIs (this month)
+  // KPIs
   await updateKPIs(products);
 }
 
-// Revenue by month via your existing endpoints
+// ---------- Top Products ----------
+async function renderTopProducts() {
+  const res = await fetch("/api/stats/top-products");
+  const raw = await res.json();
+  const withRevenue = await addRevenueIfMissing(raw);
+
+  const metricSel = document.getElementById("topProdMetric");
+  const typeSel = document.getElementById("topProdType");
+  const topNSel = document.getElementById("topProdN");
+
+  const metric = metricSel?.value || "units";       // 'units' | 'revenue'
+  const chartType = typeSel?.value || "doughnut";   // 'doughnut' | 'bar'
+  const topN = Number(topNSel?.value || 5);
+
+  const valueKey = metric === "revenue" ? "totalRevenue" : "totalSold";
+  const valueFmt = metric === "revenue"
+    ? (v) => currency(v)
+    : (v) => String(v);
+  const titleText = metric === "revenue"
+    ? "Top Products by Revenue"
+    : "Top Products by Units";
+
+  const sorted = [...withRevenue].sort((a, b) => (b[valueKey] || 0) - (a[valueKey] || 0));
+
+  const top = sorted.slice(0, topN);
+  const rest = sorted.slice(topN);
+  const othersTotal = rest.reduce((s, r) => s + Number(r[valueKey] || 0), 0);
+  if (othersTotal > 0) top.push({ name: "Others", [valueKey]: othersTotal });
+
+  const labels = top.map(t => t.name);
+  const data = top.map(t => Number(t[valueKey] || 0));
+
+  const palette = [
+    "#60a5fa", "#a78bfa", "#34d399", "#fda4af", "#fbbf24",
+    "#38bdf8", "#f472b6", "#86efac", "#fcd34d", "#d4d4d8"
+  ];
+  const colors = labels.map((_, i) => palette[i % palette.length]);
+
+  const ctx = document.getElementById("topProducts").getContext("2d");
+  if (topProductsChart) topProductsChart.destroy();
+
+  const commonOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { color: "#cbd5e1" } },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const label = ctx.label || "";
+            const v = ctx.parsed;
+            return ` ${label}: ${valueFmt(v)}`;
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: titleText,
+        color: "#e7edf5",
+        font: { weight: "bold", size: 14 }
+      }
+    }
+  };
+
+  if (chartType === "bar") {
+    topProductsChart = new Chart(ctx, {
+      type: "bar",
+      data: { labels, datasets: [{ label: metric, data, backgroundColor: colors, borderRadius: 8 }] },
+      options: {
+        ...commonOpts,
+        indexAxis: "y",
+        scales: {
+          x: {
+            grid: { color: "rgba(148,163,184,.15)" },
+            ticks: { color: "#9aa6b2", callback: (val) => metric === "revenue" ? currency(val) : val }
+          },
+          y: { grid: { display: false }, ticks: { color: "#9aa6b2" } }
+        }
+      }
+    });
+  } else {
+    topProductsChart = new Chart(ctx, {
+      type: "doughnut",
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+      options: { ...commonOpts, cutout: "58%" }
+    });
+    const total = data.reduce((a, b) => a + b, 0);
+    drawCenterText(ctx.canvas, metric === "revenue" ? currency(total) : String(total), metric === "revenue" ? "Total Revenue" : "Total Units");
+  }
+
+  metricSel?.addEventListener("change", renderTopProducts, { once: true });
+  typeSel?.addEventListener("change", renderTopProducts, { once: true });
+  topNSel?.addEventListener("change", renderTopProducts, { once: true });
+}
+
+// ---------- Low Stock ----------
+async function renderLowStock(products, opts = {}) {
+  const topN = opts.topN ?? 10;
+  const threshold = opts.threshold ?? 5;
+  const onlyBelow = opts.onlyBelow ?? true;
+
+  const rows = (products || []).map(p => ({
+    name: p.name || '-',
+    qty: Number(p.quantity || 0),
+    reorder: Number(p.reorderLevel ?? threshold)
+  }));
+
+  const filtered = onlyBelow
+    ? rows.filter(r => r.qty < (r.reorder || threshold))
+    : rows;
+  filtered.sort((a, b) => a.qty - b.qty);
+
+  const data = filtered.slice(0, topN);
+  const labels = data.map(r => r.name.length > 24 ? r.name.slice(0, 23) + '…' : r.name);
+  const quantities = data.map(r => r.qty);
+  const colors = data.map(r => {
+    const th = r.reorder || threshold;
+    if (r.qty < th) return '#ef4444';
+    if (r.qty <= th + 2) return '#f59e0b';
+    return '#22c55e';
+  });
+
+  const dataset = [{ label: 'Qty Remaining', data: quantities, backgroundColor: colors, maxBarThickness: 28, borderRadius: 8 }];
+
+  const hasAnnotation = !!(Chart?.registry?.plugins?.get?.('annotation'));
+  const annotations = hasAnnotation ? {
+    annotations: {
+      threshold: {
+        type: 'line',
+        xMin: threshold,
+        xMax: threshold,
+        borderColor: '#94a3b8',
+        borderWidth: 2,
+        borderDash: [4, 4],
+        label: {
+          display: true,
+          content: `Threshold: ${threshold}`,
+          backgroundColor: 'rgba(148,163,184,.12)',
+          color: '#64748b',
+          position: 'start',
+          padding: 4
+        }
+      }
+    }
+  } : {};
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          title: (items) => data[items[0].dataIndex].name,
+          label: (ctx) => {
+            const r = data[ctx.dataIndex];
+            const th = r.reorder || threshold;
+            const gap = Math.max(th - r.qty, 0);
+            return [`Qty: ${r.qty}`, `Reorder level: ${th}`, `Gap: ${gap}`];
+          }
+        }
+      },
+      ...(hasAnnotation ? { annotation: annotations } : {})
+    },
+    scales: {
+      x: { beginAtZero: true, grid: { color: 'rgba(148,163,184,.15)' }, ticks: { color: '#cbd5e1' } },
+      y: { grid: { display: false }, ticks: { color: '#cbd5e1' } }
+    }
+  };
+
+  drawOrUpdate('lowStock', 'bar', { labels, datasets: dataset }, options);
+}
+
+// ---------- Revenue + KPIs ----------
 async function revenueByMonth(year, userId) {
-  // get monthly quantities
   const monthly = await (await fetch(`/api/stats/sales-by-month?year=${year}`)).json();
-  // get all sales for revenue calc (filtering by year & optional user)
   const qs = new URLSearchParams();
   qs.set("startDate", `${year}-01-01`);
   qs.set("endDate", `${year}-12-31`);
   if (userId) qs.set("userId", userId);
   const sales = await (await fetch(`/api/sales?${qs.toString()}`)).json();
 
-  // build a map productId -> price from populated results
-  // (sales[].product has {name, price} because you populate)
   const monthRevenue = Array(12).fill(0);
   sales.forEach(s => {
     const d = new Date(s.date);
@@ -272,21 +281,18 @@ async function revenueByMonth(year, userId) {
     const price = s.product?.price ?? 0;
     monthRevenue[m] += price * s.quantity;
   });
-  // Fallback to quantities if you want to show both:
-  // return monthly.sales; // <- quantities only
   return monthRevenue.map(v => Math.round(v * 100) / 100);
 }
 
 async function updateKPIs(products) {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const end = new Date(now.getFullYear(), now.getMonth()+1, 0, 23,59,59).toISOString();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
   const sales = await (await fetch(`/api/sales?startDate=${start}&endDate=${end}`)).json();
 
   const revenue = sales.reduce((sum, s) => sum + (s.product?.price || 0) * s.quantity, 0);
   const units = sales.reduce((sum, s) => sum + s.quantity, 0);
-
   const sellerSet = new Set(sales.map(s => s.soldBy?._id || s.soldBy));
   const lowStockCount = products.filter(p => p.quantity < 5).length;
 
@@ -296,7 +302,7 @@ async function updateKPIs(products) {
   kpiLowStock.textContent = lowStockCount;
 }
 
-// chart helper
+// ---------- Helpers ----------
 function drawOrUpdate(canvasId, type, data, options = {}) {
   const ctx = document.getElementById(canvasId).getContext("2d");
   if (charts[canvasId]) {
@@ -308,10 +314,37 @@ function drawOrUpdate(canvasId, type, data, options = {}) {
   }
 }
 
-// simple palette
-function palette(n){
-  const base = ["#60a5fa","#a78bfa","#f472b6","#fb7185","#f59e0b","#34d399","#22d3ee","#f87171"];
-  const out = [];
-  for(let i=0;i<n;i++) out.push(base[i % base.length]);
-  return out;
+function currency(n) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(Number(n || 0));
+}
+
+async function addRevenueIfMissing(list) {
+  const hasRevenue = list.some(i => typeof i.totalRevenue === "number");
+  if (hasRevenue) return list;
+
+  const prodRes = await fetch("/api/products");
+  const products = await prodRes.json();
+  const priceMap = new Map(products.map(p => [p.name, Number(p.price || 0)]));
+
+  return list.map(p => ({
+    ...p,
+    totalRevenue: Number(p.totalSold || 0) * (priceMap.get(p.name) ?? 0)
+  }));
+}
+
+function drawCenterText(canvas, big, small) {
+  const ctx = canvas.getContext("2d");
+  const { width, height } = canvas;
+  requestAnimationFrame(() => {
+    const centerX = width / 2, centerY = height / 2;
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "bold 16px Inter, system-ui, sans-serif";
+    ctx.fillText(small, centerX, centerY - 4);
+    ctx.fillStyle = "#e7edf5";
+    ctx.font = "bold 20px Inter, system-ui, sans-serif";
+    ctx.fillText(big, centerX, centerY + 20);
+    ctx.restore();
+  });
 }
