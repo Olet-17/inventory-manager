@@ -943,45 +943,67 @@ app.put("/api/user/:id/password", async (req, res) => {
 
 
 // Shitja e produktit pa autentifikim me token
-app.post('/api/sales', async (req, res) => {
-  const { productId, quantity, soldBy } = req.body;
-
+app.post('/api/sales', async (req, res) => { 
   try {
-    const product = await Product.findById(productId);
-    if (!product || product.quantity < quantity) {
+    const { productId, quantity, soldBy } = req.body;
+
+    // 1) Validate inputs
+    if (!productId || !quantity) {
+      return res.status(400).json({ error: 'productId and quantity are required' });
+    }
+    if (!soldBy) {
+      return res.status(400).json({ error: 'soldBy (user id) is required' });
+    }
+
+    // 2) Load product and user
+    const [product, user] = await Promise.all([
+      Product.findById(productId),
+      User.findById(soldBy).select('_id username role')
+    ]);
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    if (!user) {
+      return res.status(404).json({ error: 'User (soldBy) not found' });
+    }
+    if (product.quantity < quantity) {
       return res.status(400).json({ error: 'Not enough stock' });
     }
 
+    // 3) Update stock
     product.quantity -= quantity;
     await product.save();
 
-    const sale = new Sale({
-      product: productId,
+    // 4) Create sale (link to the verified user id)
+    const sale = await new Sale({
+      product: product._id,
       quantity,
-      soldBy
-    });
-    await sale.save();
+      soldBy: user._id
+    }).save();
 
-    const user = await User.findById(soldBy);
-
-    // ✅ Njoftim për shitje
+    // 5) Notifications
     await Notification.create({
-      message: `💸 ${quantity} x ${product.name} sold by ${user?.username || "Unknown"}`,
-      type: "success"
+      message: `💸 ${quantity} x ${product.name} sold by ${user.username}`,
+      type: 'success'
     });
 
-    // ✅ Njoftim nëse ka pak stok
     if (product.quantity < 5) {
       await Notification.create({
         message: `⚠️ Low stock: Only ${product.quantity} x ${product.name} left!`,
-        type: "warning"
+        type: 'warning'
       });
     }
 
-    res.json({ message: 'Sale completed!', sale });
+    // 6) Return populated sale so you can verify in the UI immediately
+    const populatedSale = await Sale.findById(sale._id)
+      .populate('product', 'name price')
+      .populate('soldBy', 'username role');
+
+    res.json({ message: 'Sale completed!', sale: populatedSale });
 
   } catch (err) {
-    console.error("❌ Error during sale:", err);
+    console.error('❌ Error during sale:', err);
     res.status(500).json({ error: 'Failed to complete sale' });
   }
 });
