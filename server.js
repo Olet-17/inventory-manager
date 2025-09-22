@@ -41,8 +41,11 @@ const User = mongoose.model('User', userSchema);
 
 // Skema e produkteve
 const productSchema = new mongoose.Schema({
+   sku:    { type: String, required: true, unique: true, index: true },
   name: String,
   price: Number,
+  cost:   { type: Number, default: 0 }, 
+  reorderLevel: { type: Number, default: 5 },
   quantity: Number
 });
 const Product = mongoose.model('Product', productSchema);
@@ -586,6 +589,10 @@ app.get("/api/stats/role-breakdown", async (req, res) => {
     res.status(500).json({ error: "Failed to get role breakdown" });
   }
 });
+
+
+
+
 
 
 // Kodi per faturim
@@ -1419,18 +1426,18 @@ const toMoney = n => Number(n || 0).toFixed(2);
 // You already have your own version; just keep it.
 // It must return an object like:
 // { orders, units, revenue, topProduct, topSeller, lowStockCount, dateStr }
-async function sendDailySummaryNow() {
-  // TODO: replace with your real aggregation
-  return {
-    orders: 0,
-    units: 0,
-    revenue: 0,
-    topProduct: null,
-    topSeller: null,
-    lowStockCount: 7,
-    dateStr: new Date().toLocaleString()
-  };
-}
+// async function sendDailySummaryNow() {
+//   // TODO: replace with your real aggregation
+//   return {
+//     orders: 0,
+//     units: 0,
+//     revenue: 0,
+//     topProduct: null,
+//     topSeller: null,
+//     lowStockCount: 7,
+//     dateStr: new Date().toLocaleString()
+//   };
+// }
 
 app.post('/api/admin/summary/send-now', async (req, res) => {
   try {
@@ -1523,6 +1530,97 @@ if (!global.__SUMMARY_JOB_STARTED__) {
   }
 }
 
+
+
+// --- in server.js ---
+const multer = require("multer");
+const { parse } = require("csv-parse/sync");
+ // sync API for simplicity
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post("/api/products/import", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded. Use field name 'file'." });
+    }
+
+    // Parse CSV from buffer
+    const csvString = req.file.buffer.toString("utf8");
+    const rows = parse(csvString, {
+      columns: true,        // first row as headers
+      skip_empty_lines: true,
+      trim: true
+    });
+
+    // Validate basic headers
+    const required = ["sku", "name"];
+    const missingHeaders = required.filter(h => !(h in rows[0] || {}));
+    if (missingHeaders.length) {
+      return res.status(400).json({ error: `Missing header(s): ${missingHeaders.join(", ")}` });
+    }
+
+    const report = {
+      total: rows.length,
+      inserted: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [] // { row: i, sku, reason }
+    };
+
+    // Process rows
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+
+      // normalize
+      const sku = String(r.sku || "").trim();
+      const name = String(r.name || "").trim();
+      if (!sku || !name) {
+        report.skipped++;
+        report.errors.push({ row: i + 1, sku, reason: "Missing sku or name" });
+        continue;
+      }
+
+      // numeric fields
+      const price  = Number(r.price ?? 0);
+      const cost   = Number(r.cost ?? 0);
+      const qty    = Number(r.quantity ?? 0);
+      const reorderLevel = Number(r.reorderLevel ?? 5);
+
+      try {
+        // upsert by sku
+        const existing = await Product.findOne({ sku });
+        if (existing) {
+          existing.name = name;
+          existing.price = isNaN(price) ? existing.price : price;
+          existing.cost = isNaN(cost) ? existing.cost : cost;
+          existing.quantity = isNaN(qty) ? existing.quantity : qty;
+          existing.reorderLevel = isNaN(reorderLevel) ? existing.reorderLevel : reorderLevel;
+          await existing.save();
+          report.updated++;
+        } else {
+          await Product.create({
+            sku,
+            name,
+            price: isNaN(price) ? 0 : price,
+            cost: isNaN(cost) ? 0 : cost,
+            quantity: isNaN(qty) ? 0 : qty,
+            reorderLevel: isNaN(reorderLevel) ? 5 : reorderLevel
+          });
+          report.inserted++;
+        }
+      } catch (err) {
+        report.skipped++;
+        report.errors.push({ row: i + 1, sku, reason: err.message });
+      }
+    }
+
+    res.json({ ok: true, ...report });
+  } catch (e) {
+    console.error("[/api/products/import] failed:", e);
+    res.status(500).json({ error: "Import failed" });
+  }
+});
 
 
 

@@ -37,6 +37,27 @@
     </table>
   </div>
 
+
+  <form id="importForm" enctype="multipart/form-data">
+  <input type="file" id="csvFile" name="file" accept=".csv" required />
+  <button type="submit">Import CSV</button>
+</form>
+<pre id="importResult"></pre>
   <script src="../js/products.js" defer></script>
+
+  <script>
+document.getElementById("importForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = document.getElementById("csvFile").files[0];
+  if (!f) return;
+
+  const fd = new FormData();
+  fd.append("file", f);
+
+  const res = await fetch("/api/products/import", { method: "POST", body: fd });
+  const json = await res.json();
+  document.getElementById("importResult").textContent = JSON.stringify(json, null, 2);
+});
+</script>
 </body>
 </html>

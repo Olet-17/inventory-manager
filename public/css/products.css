@@ -232,3 +232,58 @@ h2{
     to{ opacity:1; transform: translateY(0) }
   }
 }
+
+/* Container form */
+#importForm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid #e5e7eb;   /* light gray */
+  border-radius: 8px;
+  background: #f9fafb;         /* subtle background */
+}
+
+/* File input */
+#importForm input[type="file"] {
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Import CSV button */
+#importForm button {
+  background: #2563eb;          /* blue-600 */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+#importForm button:hover {
+  background: #1d4ed8;          /* blue-700 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+#importForm button:active {
+  transform: scale(0.97);
+}
+
+/* Result output */
+#importResult {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-size: 13px;
+  color: #374151;
+  white-space: pre-wrap;
+}
