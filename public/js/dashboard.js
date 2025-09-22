@@ -107,62 +107,62 @@ dropdown.classList.remove("hidden"); // once on load
   });
 
 
-  // js/globalSearch.js
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("globalSearch");
+//   // js/globalSearch.js
+// document.addEventListener("DOMContentLoaded", () => {
+//   const searchInput = document.getElementById("globalSearch");
 
-  if (searchInput) {
-    searchInput.addEventListener("keypress", async (e) => {
-      if (e.key === "Enter") {
-        const query = searchInput.value.trim();
-        if (!query) return;
+//   if (searchInput) {
+//     searchInput.addEventListener("keypress", async (e) => {
+//       if (e.key === "Enter") {
+//         const query = searchInput.value.trim();
+//         if (!query) return;
 
-        // Example: Send to backend API
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const results = await res.json();
+//         // Example: Send to backend API
+//         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+//         const results = await res.json();
 
-        // For now, just log results (later we can build a results page or dropdown)
-        console.log("Search results:", results);
-      }
-    });
-  }
-});
-const data = [
-  { type: "page", name: "Manage Products", link: "products.html" },
-  { type: "page", name: "View Sales", link: "sales.html" },
-  { type: "page", name: "Manage Users", link: "users.html" },
-  { type: "page", name: "Analytics", link: "analytics.html" }
-];
+//         // For now, just log results (later we can build a results page or dropdown)
+//         console.log("Search results:", results);
+//       }
+//     });
+//   }
+// });
+// const data = [
+//   { type: "page", name: "Manage Products", link: "products.html" },
+//   { type: "page", name: "View Sales", link: "sales.html" },
+//   { type: "page", name: "Manage Users", link: "users.html" },
+//   { type: "page", name: "Analytics", link: "analytics.html" }
+// ];
 
-const input = document.getElementById("globalSearch");
-const resultsBox = document.getElementById("searchResults");
+// const input = document.getElementById("globalSearch");
+// const resultsBox = document.getElementById("searchResults");
 
-input.addEventListener("input", () => {
-  const query = input.value.toLowerCase();
-  resultsBox.innerHTML = "";
+// input.addEventListener("input", () => {
+//   const query = input.value.toLowerCase();
+//   resultsBox.innerHTML = "";
 
-  if (!query) {
-    resultsBox.style.display = "none";
-    return;
-  }
+//   if (!query) {
+//     resultsBox.style.display = "none";
+//     return;
+//   }
 
-  const results = data.filter(item => item.name.toLowerCase().includes(query));
+//   const results = data.filter(item => item.name.toLowerCase().includes(query));
 
-  if (results.length === 0) {
-    resultsBox.innerHTML = `<div class="sr-item">No results found</div>`;
-  } else {
-    results.forEach(item => {
-      const div = document.createElement("a");
-      div.href = item.link;
-      div.className = "sr-item";
-      div.innerHTML = `
-        <span class="sr-type">${item.type}</span>
-        <span class="sr-name">${item.name}</span>
-      `;
-      resultsBox.appendChild(div);
-    });
-  }
+//   if (results.length === 0) {
+//     resultsBox.innerHTML = `<div class="sr-item">No results found</div>`;
+//   } else {
+//     results.forEach(item => {
+//       const div = document.createElement("a");
+//       div.href = item.link;
+//       div.className = "sr-item";
+//       div.innerHTML = `
+//         <span class="sr-type">${item.type}</span>
+//         <span class="sr-name">${item.name}</span>
+//       `;
+//       resultsBox.appendChild(div);
+//     });
+//   }
 
-  resultsBox.style.display = "block";
-});
+//   resultsBox.style.display = "block";
+// });
 

@@ -12,17 +12,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const res = await fetch("/api/sales");            // all sales (no filter)
+    const res = await fetch("/api/sales"); // all sales
     const sales = await res.json();
 
-    // Collect roles present in payload (so we can hide role column if redundant)
+    // figure out if Role column is redundant
     const roleSet = new Set(
-      sales.map(s => (s.soldBy && s.soldBy.role) ? s.soldBy.role : null)
-           .filter(Boolean)
+      sales.map(s => s?.soldBy?.role).filter(Boolean)
     );
-    const hideRoleCol = roleSet.size <= 1;            // If all same (e.g., all "admin"), hide the column
+    const hideRoleCol = roleSet.size <= 1;
 
-    // Rebuild table header based on whether we hide the Role column
+    // table header (add Actions column)
     theadRow.innerHTML = `
       <th>Product</th>
       <th>Qty</th>
@@ -31,24 +30,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       <th>Sold By</th>
       ${hideRoleCol ? "" : "<th>Role</th>"}
       <th>Date</th>
+      <th>Actions</th>
     `;
 
-    // Build rows
     const fmt = new Intl.NumberFormat(undefined, {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 2
     });
 
+    // rows
     tbody.innerHTML = "";
-    sales.forEach(sale => {
-      const name = sale.product?.name ?? "-";
-      const qty = Number(sale.quantity || 0);
-      const price = Number(sale.product?.price || 0);
-      const total = price * qty;
+    for (const sale of sales) {
+      const name   = sale.product?.name ?? "-";
+      const qty    = Number(sale.quantity || 0);
+      const price  = Number(sale.product?.price || 0);
+      const total  = price * qty;
       const seller = sale.soldBy?.username ?? "-";
-      const role = sale.soldBy?.role ?? "-";
-      const dateStr = new Date(sale.date).toLocaleDateString();
+      const role   = sale.soldBy?.role ?? "-";
+      const dateStr= new Date(sale.date).toLocaleDateString();
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -59,9 +59,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>${escapeHtml(seller)}</td>
         ${hideRoleCol ? "" : `<td>${escapeHtml(role)}</td>`}
         <td>${dateStr}</td>
+        <td>
+          <button class="delete-btn" data-id="${sale._id}" title="Delete sale">🗑️</button>
+        </td>
       `;
       tbody.appendChild(tr);
-    });
+    }
 
     table.style.display = "table";
   } catch (err) {
@@ -69,6 +72,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     notAdmin.textContent = "❌ Error loading sales.";
     notAdmin.style.display = "block";
   }
+
+  // Event delegation for delete buttons
+  tbody.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".delete-btn");
+    if (!btn) return;
+
+    const id = btn.dataset.id;
+    if (!id) return;
+
+    if (!confirm("Are you sure you want to delete this sale?")) return;
+
+    try {
+      const res = await fetch(`/api/sales/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        alert("❌ Error: " + (data.error || "Failed to delete"));
+        return;
+      }
+      // remove row from UI
+      btn.closest("tr")?.remove();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("❌ Failed to delete sale.");
+    }
+  });
 
   // Simple HTML escape helper
   function escapeHtml(s) {

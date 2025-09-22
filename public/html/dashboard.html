@@ -267,133 +267,134 @@ document.addEventListener("DOMContentLoaded", () => {
     showBox();
   }
 </script> -->
+<script src="../js/global-search.js" defer></script>
 
 
 <script>
-(() => {
-  // --- Static index (edit to your liking) ---
-  const INDEX = [
-    // Pages (quick nav)
-    { type: "page", name: "Dashboard",       link: "/html/dashboard.html",     icon: "🏠" },
-    { type: "page", name: "Manage Products", link: "/html/products.html",      icon: "📦" },
-    { type: "page", name: "View Sales",      link: "/html/viewsalesadmin.html",icon: "🧾" },
-    { type: "page", name: "Manage Users",    link: "/html/manage-users.html",  icon: "👥" },
-    { type: "page", name: "Analytics",       link: "/html/analytics.html",     icon: "📊" },
-    { type: "page", name: "Create Sale",     link: "/html/create-sale.html",   icon: "💸" },
-    { type: "page", name: "My Sales",        link: "/html/mysales.html",       icon: "🧾" },
-    { type: "page", name: "My Profile",      link: "/html/profile.html",       icon: "👤" },
+// (() => {
+//   // --- Static index (edit to your liking) ---
+//   const INDEX = [
+//     // Pages (quick nav)
+//     { type: "page", name: "Dashboard",       link: "/html/dashboard.html",     icon: "🏠" },
+//     { type: "page", name: "Manage Products", link: "/html/products.html",      icon: "📦" },
+//     { type: "page", name: "View Sales",      link: "/html/viewsalesadmin.html",icon: "🧾" },
+//     { type: "page", name: "Manage Users",    link: "/html/manage-users.html",  icon: "👥" },
+//     { type: "page", name: "Analytics",       link: "/html/analytics.html",     icon: "📊" },
+//     { type: "page", name: "Create Sale",     link: "/html/create-sale.html",   icon: "💸" },
+//     { type: "page", name: "My Sales",        link: "/html/mysales.html",       icon: "🧾" },
+//     { type: "page", name: "My Profile",      link: "/html/profile.html",       icon: "👤" },
 
-    // Example “entities” (optional)
-    { type: "product", name: "Aloe Vera",    link: "/html/products.html#aloe", icon: "🪴" },
-    { type: "product", name: "Makarona1",    link: "/html/products.html#maka", icon: "🍝" },
-    { type: "user",    name: "maca",         link: "/html/manage-users.html#u-maca", icon: "🙍" },
-  ];
+//     // Example “entities” (optional)
+//     { type: "product", name: "Aloe Vera",    link: "/html/products.html#aloe", icon: "🪴" },
+//     { type: "product", name: "Makarona1",    link: "/html/products.html#maka", icon: "🍝" },
+//     { type: "user",    name: "maca",         link: "/html/manage-users.html#u-maca", icon: "🙍" },
+//   ];
 
-  const input = document.getElementById("globalSearch");
-  const box   = document.getElementById("searchResults");
-  if (!input || !box) return;
+//   const input = document.getElementById("globalSearch");
+//   const box   = document.getElementById("searchResults");
+//   if (!input || !box) return;
 
-  let activeIndex = -1; // for keyboard nav
-  let currentResults = [];
+//   let activeIndex = -1; // for keyboard nav
+//   let currentResults = [];
 
-  const render = (results, query) => {
-    box.innerHTML = "";
-    activeIndex = -1;
-    currentResults = results;
+//   const render = (results, query) => {
+//     box.innerHTML = "";
+//     activeIndex = -1;
+//     currentResults = results;
 
-    if (!query) { box.style.display = "none"; return; }
+//     if (!query) { box.style.display = "none"; return; }
 
-    if (results.length === 0) {
-      box.innerHTML = `<div class="sr-item sr-empty">No results found</div>`;
-      box.style.display = "block";
-      return;
-    }
+//     if (results.length === 0) {
+//       box.innerHTML = `<div class="sr-item sr-empty">No results found</div>`;
+//       box.style.display = "block";
+//       return;
+//     }
 
-    results.forEach((r, i) => {
-      const a = document.createElement("a");
-      a.href = r.link;
-      a.className = "sr-item";
-      a.setAttribute("data-idx", String(i));
-      a.innerHTML = `
-        <span class="sr-icon">${r.icon || "🔎"}</span>
-        <span class="sr-name">${highlight(r.name, query)}</span>
-        <span class="sr-type">${r.type}</span>
-      `;
-      a.addEventListener("mouseenter", () => setActive(i));
-      a.addEventListener("mouseleave", () => setActive(-1));
-      box.appendChild(a);
-    });
+//     results.forEach((r, i) => {
+//       const a = document.createElement("a");
+//       a.href = r.link;
+//       a.className = "sr-item";
+//       a.setAttribute("data-idx", String(i));
+//       a.innerHTML = `
+//         <span class="sr-icon">${r.icon || "🔎"}</span>
+//         <span class="sr-name">${highlight(r.name, query)}</span>
+//         <span class="sr-type">${r.type}</span>
+//       `;
+//       a.addEventListener("mouseenter", () => setActive(i));
+//       a.addEventListener("mouseleave", () => setActive(-1));
+//       box.appendChild(a);
+//     });
 
-    box.style.display = "block";
-  };
+//     box.style.display = "block";
+//   };
 
-  const highlight = (text, q) => {
-    const re = new RegExp(`(${escapeRegExp(q)})`, "ig");
-    return text.replace(re, "<mark>$1</mark>");
-  };
+//   const highlight = (text, q) => {
+//     const re = new RegExp(`(${escapeRegExp(q)})`, "ig");
+//     return text.replace(re, "<mark>$1</mark>");
+//   };
 
-  const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+//   const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  const search = (q) => {
-    const query = q.trim().toLowerCase();
-    if (!query) { render([], ""); return; }
+//   const search = (q) => {
+//     const query = q.trim().toLowerCase();
+//     if (!query) { render([], ""); return; }
 
-    // simple contains match across name & type
-    const res = INDEX.filter(x =>
-      x.name.toLowerCase().includes(query) ||
-      x.type.toLowerCase().includes(query)
-    ).slice(0, 8); // cap results
-    render(res, query);
-  };
+//     // simple contains match across name & type
+//     const res = INDEX.filter(x =>
+//       x.name.toLowerCase().includes(query) ||
+//       x.type.toLowerCase().includes(query)
+//     ).slice(0, 8); // cap results
+//     render(res, query);
+//   };
 
-  const setActive = (idx) => {
-    activeIndex = idx;
-    [...box.querySelectorAll(".sr-item")].forEach((el, i) => {
-      el.classList.toggle("active", i === activeIndex);
-    });
-  };
+//   const setActive = (idx) => {
+//     activeIndex = idx;
+//     [...box.querySelectorAll(".sr-item")].forEach((el, i) => {
+//       el.classList.toggle("active", i === activeIndex);
+//     });
+//   };
 
-  const openActive = () => {
-    if (activeIndex < 0) return;
-    const el = box.querySelector(`.sr-item[data-idx="${activeIndex}"]`);
-    if (el) el.click();
-  };
+//   const openActive = () => {
+//     if (activeIndex < 0) return;
+//     const el = box.querySelector(`.sr-item[data-idx="${activeIndex}"]`);
+//     if (el) el.click();
+//   };
 
-  // Debounce for nicer feel
-  let t;
-  input.addEventListener("input", () => {
-    clearTimeout(t);
-    t = setTimeout(() => search(input.value), 120);
-  });
+//   // Debounce for nicer feel
+//   let t;
+//   input.addEventListener("input", () => {
+//     clearTimeout(t);
+//     t = setTimeout(() => search(input.value), 120);
+//   });
 
-  // Keyboard navigation
-  input.addEventListener("keydown", (e) => {
-    const items = box.querySelectorAll(".sr-item");
-    if (box.style.display !== "block" || items.length === 0) return;
+//   // Keyboard navigation
+//   input.addEventListener("keydown", (e) => {
+//     const items = box.querySelectorAll(".sr-item");
+//     if (box.style.display !== "block" || items.length === 0) return;
 
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActive((activeIndex + 1) % items.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActive((activeIndex - 1 + items.length) % items.length);
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      openActive();
-    } else if (e.key === "Escape") {
-      box.style.display = "none";
-      activeIndex = -1;
-    }
-  });
+//     if (e.key === "ArrowDown") {
+//       e.preventDefault();
+//       setActive((activeIndex + 1) % items.length);
+//     } else if (e.key === "ArrowUp") {
+//       e.preventDefault();
+//       setActive((activeIndex - 1 + items.length) % items.length);
+//     } else if (e.key === "Enter") {
+//       e.preventDefault();
+//       openActive();
+//     } else if (e.key === "Escape") {
+//       box.style.display = "none";
+//       activeIndex = -1;
+//     }
+//   });
 
-  // Hide when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!box.contains(e.target) && e.target !== input) {
-      box.style.display = "none";
-      activeIndex = -1;
-    }
-  });
-})();
+//   // Hide when clicking outside
+//   document.addEventListener("click", (e) => {
+//     if (!box.contains(e.target) && e.target !== input) {
+//       box.style.display = "none";
+//       activeIndex = -1;
+//     }
+//   });
+// })();
 </script>
 
 </body>
