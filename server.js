@@ -55,7 +55,9 @@ const saleSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
   quantity: Number,
   date: { type: Date, default: Date.now },
-  soldBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  soldBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  unitPrice: Number,
+  unitCost: Number
 });
 const Sale = mongoose.model('Sale', saleSchema);
 
@@ -487,6 +489,41 @@ app.get("/api/stats/sales-by-month", async (req, res) => {
   }
 });
 
+// Profit by month (optionally filtered by userId)
+app.get('/api/stats/profit-by-month', async (req, res) => {
+  try {
+    const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+    const userId = req.query.userId;
+
+    const match = {
+      date: { $gte: new Date(`${year}-01-01`), $lte: new Date(`${year}-12-31`) }
+    };
+    if (userId) match.soldBy = new mongoose.Types.ObjectId(userId);
+
+    // Pull sales for that year (with product pricing as fallback)
+    const sales = await Sale.find(match).populate('product', 'unitPrice price unitCost');
+
+    const byMonth = Array(12).fill(0);
+
+    for (const s of sales) {
+      const m = new Date(s.date).getMonth();
+      const qty   = Number(s.quantity || 0);
+      const price = (typeof s.unitPrice === 'number')
+        ? s.unitPrice
+        : (s.product?.unitPrice ?? s.product?.price ?? 0);
+      const cost  = (typeof s.unitCost  === 'number')
+        ? s.unitCost
+        : (s.product?.unitCost ?? 0);
+
+      byMonth[m] += (price - cost) * qty;
+    }
+
+    res.json({ year, profit: byMonth.map(v => Math.round(v * 100) / 100) });
+  } catch (e) {
+    console.error('❌ Error fetching profit by month:', e);
+    res.status(500).json({ error: 'Failed to get profit stats' });
+  }
+});
 
 
 app.get("/api/stats/sales-per-user", async (req, res) => {
@@ -1086,14 +1123,20 @@ app.post('/api/sales', async (req, res) => {
     product.quantity -= quantity;
     await product.save();
 
-    // 4) Create sale (link to the verified user id)
+    // 4) Snapshot price & cost for accurate profit tracking
+    const unitPrice = product.price ?? 0;
+    const unitCost  = product.cost ?? 0;
+
+    // 5) Create sale (snapshotting price/cost)
     const sale = await new Sale({
       product: product._id,
       quantity,
-      soldBy: user._id
+      soldBy: user._id,
+      unitPrice,
+      unitCost
     }).save();
 
-    // 5) Notifications
+    // 6) Notifications
     await Notification.create({
       message: `💸 ${quantity} x ${product.name} sold by ${user.username}`,
       type: 'success'
@@ -1106,9 +1149,9 @@ app.post('/api/sales', async (req, res) => {
       });
     }
 
-    // 6) Return populated sale so you can verify in the UI immediately
+    // 7) Return populated sale so UI shows seller/product info + snapshots
     const populatedSale = await Sale.findById(sale._id)
-      .populate('product', 'name price')
+      .populate('product', 'name price cost')
       .populate('soldBy', 'username role');
 
     res.json({ message: 'Sale completed!', sale: populatedSale });
@@ -1118,6 +1161,7 @@ app.post('/api/sales', async (req, res) => {
     res.status(500).json({ error: 'Failed to complete sale' });
   }
 });
+
 
 
 app.delete("/api/notifications/:id", async (req, res) => {
