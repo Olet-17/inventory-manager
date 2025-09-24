@@ -28,121 +28,117 @@
 </body>
 </html> -->
 
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Analytics - Admin Dashboard</title>
-  <link rel="stylesheet" href="../css/analytics.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <header class="analytics-header container">
-    <h1>📊 Admin Analytics</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics - Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/analytics.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <header class="analytics-header container">
+      <h1>📊 Admin Analytics</h1>
 
-    <div class="filters">
-      <label>
-        Year
-        <select id="yearSelect"></select>
-      </label>
-      <label>
-        User
-        <select id="userSelect">
-          <option value="">All</option>
-        </select>
-      </label>
-      <button id="refreshBtn" class="btn">Refresh</button>
-    </div>
-  </header>
-
-  <!-- KPI CARDS -->
-  <section class="kpis container">
-    <div class="kpi">
-      <div class="kpi-title">Total Revenue</div>
-      <div class="kpi-value" id="kpiRevenue">—</div>
-      <div class="kpi-sub">This month</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-title">Units Sold</div>
-      <div class="kpi-value" id="kpiUnits">—</div>
-      <div class="kpi-sub">This month</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-title">Active Sellers</div>
-      <div class="kpi-value" id="kpiSellers">—</div>
-      <div class="kpi-sub">Last 30 days</div>
-    </div>
-    <div class="kpi warning">
-      <div class="kpi-title">Low Stock</div>
-      <div class="kpi-value" id="kpiLowStock">—</div>
-      <div class="kpi-sub">Below threshold</div>
-    </div>
-  </section>
-
-  <!-- CHART GRID -->
-  <main class="charts container">
-    <article class="card">
-      <div class="card-head">
-        <h3>Revenue Over Time</h3>
+      <div class="filters">
+        <label>
+          Year
+          <select id="yearSelect"></select>
+        </label>
+        <label>
+          User
+          <select id="userSelect">
+            <option value="">All</option>
+          </select>
+        </label>
+        <button id="refreshBtn" class="btn">Refresh</button>
       </div>
-      <canvas id="revenueByMonth"></canvas>
-    </article>
+    </header>
 
-    <article class="card">
-      <div class="card-head">
-        <h3>Sales per User</h3>
+    <!-- KPI CARDS -->
+    <section class="kpis container">
+      <div class="kpi">
+        <div class="kpi-title">Total Revenue</div>
+        <div class="kpi-value" id="kpiRevenue">—</div>
+        <div class="kpi-sub">This month</div>
       </div>
-      <canvas id="salesPerUser"></canvas>
-    </article>
-
-    <article class="card">
-      <div class="card-head">
-        <h3>Top Products</h3>
+      <div class="kpi">
+        <div class="kpi-title">Units Sold</div>
+        <div class="kpi-value" id="kpiUnits">—</div>
+        <div class="kpi-sub">This month</div>
       </div>
-      <canvas id="topProducts"></canvas>
-    </article>
-
-    <article class="card">
-      <div class="card-head">
-        <h3>Low Stock</h3>
+      <div class="kpi">
+        <div class="kpi-title">Active Sellers</div>
+        <div class="kpi-value" id="kpiSellers">—</div>
+        <div class="kpi-sub">Last 30 days</div>
       </div>
-      <canvas id="lowStock"></canvas>
-    </article>
+      <div class="kpi warning">
+        <div class="kpi-title">Low Stock</div>
+        <div class="kpi-value" id="kpiLowStock">—</div>
+        <div class="kpi-sub">Below threshold</div>
+      </div>
+    </section>
 
-    <!-- Profit by Month -->
-<div class="card">
-  <div class="card-head">
-    <h3>Profit by Month</h3>
-  </div>
-  <canvas id="profitByMonth"></canvas>
-</div>
+    <!-- CHART GRID -->
+    <main class="charts container">
+      <article class="card">
+        <div class="card-head">
+          <h3>Revenue Over Time</h3>
+        </div>
+        <canvas id="revenueByMonth"></canvas>
+      </article>
 
-<!-- Top Products by Profit -->
-<div class="card">
-  <div class="card-head">
-    <h3>Top Products by Profit</h3>
-  </div>
-  <canvas id="topProfitProducts"></canvas>
-</div>
+      <article class="card">
+        <div class="card-head">
+          <h3>Sales per User</h3>
+        </div>
+        <canvas id="salesPerUser"></canvas>
+      </article>
 
-  </main>
+      <article class="card">
+        <div class="card-head">
+          <h3>Top Products</h3>
+        </div>
+        <canvas id="topProducts"></canvas>
+      </article>
 
+      <article class="card">
+        <div class="card-head">
+          <h3>Low Stock</h3>
+        </div>
+        <canvas id="lowStock"></canvas>
+      </article>
 
-<!-- Optional KPI slots -->
-<div id="kpis">
-  <div id="kpiProfit"></div>
-  <div id="kpiMargin"></div>
-</div>
+      <!-- Profit by Month -->
+      <div class="card">
+        <div class="card-head">
+          <h3>Profit by Month</h3>
+        </div>
+        <canvas id="profitByMonth"></canvas>
+      </div>
 
+      <!-- Top Products by Profit -->
+      <div class="card">
+        <div class="card-head">
+          <h3>Top Products by Profit</h3>
+        </div>
+        <canvas id="topProfitProducts"></canvas>
+      </div>
+    </main>
 
+    <!-- Optional KPI slots -->
+    <div id="kpis">
+      <div id="kpiProfit"></div>
+      <div id="kpiMargin"></div>
+    </div>
 
-  <div id="notAdmin" class="notice container hidden">❌ Access denied. Admins only.</div>
+    <div id="notAdmin" class="notice container hidden">
+      ❌ Access denied. Admins only.
+    </div>
 
-  <script src="../js/analytics.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
-
-</body>
+    <script src="../js/analytics.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+  </body>
 </html>

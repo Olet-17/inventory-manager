@@ -1,38 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Sales</title>
-  <link rel="stylesheet" href="../css/mysales.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Sales</title>
+    <link rel="stylesheet" href="../css/mysales.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <h1>🧾 My Sales</h1>
 
-</head>
-<body>
-  <h1>🧾 My Sales</h1>
+    <div id="notLoggedIn" style="display: none; color: red; text-align: center">
+      ❌ You must be logged in to view your sales.
+    </div>
 
-  <div id="notLoggedIn" style="display: none; color: red; text-align: center;">
-    ❌ You must be logged in to view your sales.
-  </div>
+    <table border="1" id="salesTable" style="display: none">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <table border="1" id="salesTable" style="display: none;">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Quantity</th>
-        <th>Price</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <button id="exportCsvBtn" class="export-btn">
+      <i class="fa-solid fa-file-csv"></i> Export CSV
+    </button>
 
-
- <button id="exportCsvBtn" class="export-btn">
-  <i class="fa-solid fa-file-csv"></i> Export CSV
-</button>
-
-
-  <script src="../js/mysales.js" defer></script>
-</body>
+    <script src="../js/mysales.js" defer></script>
+  </body>
 </html>

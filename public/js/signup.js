@@ -1,37 +1,38 @@
-document.getElementById("signupForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+document
+  .getElementById("signupForm")
+  .addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const role = document.getElementById("role").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
 
-  try {
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password, role }),
-    });
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password, role }),
+      });
 
-    const data = await res.json();
-    const msg = document.getElementById("message");
+      const data = await res.json();
+      const msg = document.getElementById("message");
 
-    if (res.ok) {
-      msg.textContent = "Signup successful!";
-      msg.style.color = "green";
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 1000);
-    } else {
-      msg.textContent = data.error || "Signup failed";
-      msg.style.color = "red";
+      if (res.ok) {
+        msg.textContent = "Signup successful!";
+        msg.style.color = "green";
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1000);
+      } else {
+        msg.textContent = data.error || "Signup failed";
+        msg.style.color = "red";
+      }
+    } catch (err) {
+      console.error("Error during signup:", err);
     }
-  } catch (err) {
-    console.error("Error during signup:", err);
-  }
-});
-
+  });
 
 const signupPass = document.getElementById("password");
 const signupBar = document.getElementById("signup-strength-bar");
@@ -51,7 +52,7 @@ function updateStrengthMeter(val, bar, text) {
   const colors = ["#ff4d4d", "#ff884d", "#ffdb4d", "#4dff88"];
   const labels = ["Weak", "Okay", "Good", "Strong"];
 
-  bar.style.width = (strength * 25) + "%";
+  bar.style.width = strength * 25 + "%";
   bar.style.background = colors[strength - 1] || "transparent";
   text.textContent = labels[strength - 1] || "";
 }

@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     table.style.display = "table";
 
-    users.forEach(u => {
+    users.forEach((u) => {
       const row = document.createElement("tr");
 
       row.innerHTML = `
@@ -40,7 +40,7 @@ async function toggleRole(id, currentRole) {
   const res = await fetch(`/api/users/${id}/role`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ role: newRole })
+    body: JSON.stringify({ role: newRole }),
   });
 
   if (res.ok) location.reload();
@@ -50,9 +50,8 @@ async function deleteUser(id) {
   if (!confirm("Are you sure you want to delete this user?")) return;
 
   const res = await fetch(`/api/users/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
   });
 
   if (res.ok) location.reload();
 }
-

@@ -1,63 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manage Products</title>
-  <link rel="stylesheet" href="../css/products.css" />
-</head>
-<body>
-  <h1>Manage Products</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Products</title>
+    <link rel="stylesheet" href="../css/products.css" />
+  </head>
+  <body>
+    <h1>Manage Products</h1>
 
-  <div id="notAdmin" style="display: none; color: red;">
-    ❌ You are not authorized to view this page.
-  </div>
+    <div id="notAdmin" style="display: none; color: red">
+      ❌ You are not authorized to view this page.
+    </div>
 
-  <div id="productSection" style="display: none;">
-    <form id="productForm">
-      <input type="text" id="name" placeholder="Product name" required />
-      <input type="number" id="price" placeholder="Price" required />
-      <input type="number" id="quantity" placeholder="Quantity" required />
-      <button type="submit">Add Product</button>
+    <div id="productSection" style="display: none">
+      <form id="productForm">
+        <input type="text" id="name" placeholder="Product name" required />
+        <input type="number" id="price" placeholder="Price" required />
+        <input type="number" id="quantity" placeholder="Quantity" required />
+        <button type="submit">Add Product</button>
+      </form>
+
+      <p id="message"></p>
+
+      <h2>Product List</h2>
+      <table border="1" id="productTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <form id="importForm" enctype="multipart/form-data">
+      <input type="file" id="csvFile" name="file" accept=".csv" required />
+      <button type="submit">Import CSV</button>
     </form>
+    <pre id="importResult"></pre>
+    <script src="../js/products.js" defer></script>
 
-    <p id="message"></p>
+    <script>
+      document
+        .getElementById("importForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = document.getElementById("csvFile").files[0];
+          if (!f) return;
 
-    <h2>Product List</h2>
-    <table border="1" id="productTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Price</th>
-          <th>Quantity</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+          const fd = new FormData();
+          fd.append("file", f);
 
-
-  <form id="importForm" enctype="multipart/form-data">
-  <input type="file" id="csvFile" name="file" accept=".csv" required />
-  <button type="submit">Import CSV</button>
-</form>
-<pre id="importResult"></pre>
-  <script src="../js/products.js" defer></script>
-
-  <script>
-document.getElementById("importForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const f = document.getElementById("csvFile").files[0];
-  if (!f) return;
-
-  const fd = new FormData();
-  fd.append("file", f);
-
-  const res = await fetch("/api/products/import", { method: "POST", body: fd });
-  const json = await res.json();
-  document.getElementById("importResult").textContent = JSON.stringify(json, null, 2);
-});
-</script>
-</body>
+          const res = await fetch("/api/products/import", {
+            method: "POST",
+            body: fd,
+          });
+          const json = await res.json();
+          document.getElementById("importResult").textContent = JSON.stringify(
+            json,
+            null,
+            2,
+          );
+        });
+    </script>
+  </body>
 </html>

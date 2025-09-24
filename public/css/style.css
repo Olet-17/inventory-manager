@@ -1,7 +1,7 @@
 /* === Global Dark Theme === */
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background: #0b0c10; /* Same dark as dashboard */
   display: flex;
   align-items: center;
@@ -57,7 +57,9 @@ body {
   color: #fff;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .login-card input:focus {
@@ -76,7 +78,9 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.3s ease;
 }
 
 .login-card button:hover {

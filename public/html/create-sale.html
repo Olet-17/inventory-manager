@@ -1,26 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Create Sale</title>
-  <link rel="stylesheet" href="../css/create-sale.css" />
-</head>
-<body>
-  <div class="login-wrapper">
-    <div class="login-card">
-      <h2>Create Sale</h2>
-      <form id="saleForm">
-        <select id="productSelect" required>
-          <option value="">Select a Product</option>
-        </select>
-        <input type="number" id="quantity" placeholder="Quantity" min="1" required />
-        <button type="submit">Submit Sale</button>
-      </form>
-      <p id="message" class="message"></p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Sale</title>
+    <link rel="stylesheet" href="../css/create-sale.css" />
+  </head>
+  <body>
+    <div class="login-wrapper">
+      <div class="login-card">
+        <h2>Create Sale</h2>
+        <form id="saleForm">
+          <select id="productSelect" required>
+            <option value="">Select a Product</option>
+          </select>
+          <input
+            type="number"
+            id="quantity"
+            placeholder="Quantity"
+            min="1"
+            required
+          />
+          <button type="submit">Submit Sale</button>
+        </form>
+        <p id="message" class="message"></p>
+      </div>
     </div>
-  </div>
 
-  <script src="../js/create-sale.js" defer></script>
-</body>
+    <script src="../js/create-sale.js" defer></script>
+  </body>
 </html>

@@ -2,10 +2,6 @@ let editingId = null;
 
 console.log("✅ products.js loaded");
 
-
-
-
-
 window.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const productSection = document.getElementById("productSection");
@@ -22,38 +18,40 @@ window.addEventListener("DOMContentLoaded", () => {
   loadProducts();
 
   // 🆕 Form submit
-  document.getElementById("productForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document
+    .getElementById("productForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const price = parseFloat(document.getElementById("price").value);
-    const quantity = parseInt(document.getElementById("quantity").value);
-    const message = document.getElementById("message");
+      const name = document.getElementById("name").value.trim();
+      const price = parseFloat(document.getElementById("price").value);
+      const quantity = parseInt(document.getElementById("quantity").value);
+      const message = document.getElementById("message");
 
-    try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, price, quantity })
-      });
+      try {
+        const res = await fetch("/api/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, price, quantity }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (res.ok) {
-        message.textContent = "✅ Product added";
-        message.style.color = "green";
-        e.target.reset();
-        loadProducts();
-      } else {
-        message.textContent = data.error || "Failed to add product";
+        if (res.ok) {
+          message.textContent = "✅ Product added";
+          message.style.color = "green";
+          e.target.reset();
+          loadProducts();
+        } else {
+          message.textContent = data.error || "Failed to add product";
+          message.style.color = "red";
+        }
+      } catch (err) {
+        console.error("Add error:", err);
+        message.textContent = "Server error";
         message.style.color = "red";
       }
-    } catch (err) {
-      console.error("Add error:", err);
-      message.textContent = "Server error";
-      message.style.color = "red";
-    }
-  });
+    });
 });
 
 async function loadProducts() {
@@ -64,7 +62,7 @@ async function loadProducts() {
     const res = await fetch("/api/products");
     const products = await res.json();
 
-    products.forEach(product => {
+    products.forEach((product) => {
       const row = document.createElement("tr");
 
       row.innerHTML = `
@@ -88,7 +86,7 @@ async function deleteProduct(id) {
 
   try {
     const res = await fetch(`/api/products/${id}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
 
     const data = await res.json();

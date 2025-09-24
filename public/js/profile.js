@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Set form values
     document.getElementById("username").value = user.username || "";
     document.getElementById("email").value = user.email || "";
-    document.getElementById("language").value = user.preferences?.language || "en";
+    document.getElementById("language").value =
+      user.preferences?.language || "en";
     document.getElementById("theme").value = user.preferences?.theme || "light";
 
     form.addEventListener("submit", async (e) => {
@@ -34,15 +35,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const updateRes = await fetch(`/api/user/${userId}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: updatedEmail,
           preferences: {
             theme: updatedTheme,
-            language: updatedLang
-          }
-        })
+            language: updatedLang,
+          },
+        }),
       });
 
       if (updateRes.ok) {
@@ -60,33 +61,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-document.getElementById("passwordForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const current = document.getElementById("currentPassword").value;
-  const next = document.getElementById("newPassword").value;
-  const confirm = document.getElementById("confirmPassword").value;
-  const message = document.getElementById("passwordMessage");
-  const userId = sessionStorage.getItem("userId");
+document
+  .getElementById("passwordForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const current = document.getElementById("currentPassword").value;
+    const next = document.getElementById("newPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    const message = document.getElementById("passwordMessage");
+    const userId = sessionStorage.getItem("userId");
 
-  if (next !== confirm) {
-    message.textContent = "❌ Passwords do not match.";
-    message.style.color = "red";
-    return;
-  }
+    if (next !== confirm) {
+      message.textContent = "❌ Passwords do not match.";
+      message.style.color = "red";
+      return;
+    }
 
-  const res = await fetch(`/api/user/${userId}/password`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ currentPassword: current, newPassword: next })
+    const res = await fetch(`/api/user/${userId}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword: current, newPassword: next }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      message.textContent = "✅ Password updated!";
+      message.style.color = "green";
+      e.target.reset();
+    } else {
+      message.textContent = data.error || "❌ Failed to update password.";
+      message.style.color = "red";
+    }
   });
-
-  const data = await res.json();
-  if (res.ok) {
-    message.textContent = "✅ Password updated!";
-    message.style.color = "green";
-    e.target.reset();
-  } else {
-    message.textContent = data.error || "❌ Failed to update password.";
-    message.style.color = "red";
-  }
-});

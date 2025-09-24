@@ -1,174 +1,181 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard - Inventory System</title>
-  <link rel="stylesheet" href="../css/dashboard.css" />
-</head>
-<style>
-  .hidden {
-    display: none;
-  }
-</style>
-<!-- common/navbar.html (can be included in all pages) -->
-<nav class="navbar">
-  <div class="nav-center">
-    <input
-      type="text"
-      id="globalSearch"
-      placeholder="Search products, sales, users..."
-      autocomplete="off"
-      aria-label="Global search"
-      aria-controls="searchResults"
-      aria-expanded="false"
-    />
-    <!-- ▼ Results dropdown -->
-    <div id="searchResults" class="search-results" role="listbox"></div>
-  </div>
-</nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Inventory System</title>
+    <link rel="stylesheet" href="../css/dashboard.css" />
+  </head>
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+  <!-- common/navbar.html (can be included in all pages) -->
+  <nav class="navbar">
+    <div class="nav-center">
+      <input
+        type="text"
+        id="globalSearch"
+        placeholder="Search products, sales, users..."
+        autocomplete="off"
+        aria-label="Global search"
+        aria-controls="searchResults"
+        aria-expanded="false"
+      />
+      <!-- ▼ Results dropdown -->
+      <div id="searchResults" class="search-results" role="listbox"></div>
+    </div>
+  </nav>
 
   <div class="nav-right">
     <!-- <a href="dashboard.html">Dashboard</a>
     <a href="profile.html">Profile</a>
     <a href="logout.html">Logout</a> -->
   </div>
-</nav>
 
-<body>
-  <!-- place near your table header or top-right of the page -->
+  <body>
+    <!-- place near your table header or top-right of the page -->
 
-  <div class="dashboard">
-    <h1>Welcome  <span id="userRole"></span></h1>
+    <div class="dashboard">
+      <h1>Welcome <span id="userRole"></span></h1>
 
-    <div id="adminPanel" class="panel hidden">
-      <h2>Admin Panel</h2>
-      <ul>
-        <li><a href="../html/products.html">Manage Products</a></li>
-        <li><a href="../html/viewsalesadmin.html">View Sales</a></li>
-        <li><a href="../html/manage-users.html">Manage Users</a></li>
-        <li><a href="../html/analytics.html">📊 Analytics</a></li>
+      <div id="adminPanel" class="panel hidden">
+        <h2>Admin Panel</h2>
+        <ul>
+          <li><a href="../html/products.html">Manage Products</a></li>
+          <li><a href="../html/viewsalesadmin.html">View Sales</a></li>
+          <li><a href="../html/manage-users.html">Manage Users</a></li>
+          <li><a href="../html/analytics.html">📊 Analytics</a></li>
 
-<!-- <a href="/api/invoice/${sale._id}" target="_blank">📄 Invoice</a> -->
-<li><a href="../html/profile.html">👤 My Profile</a></li>
+          <!-- <a href="/api/invoice/${sale._id}" target="_blank">📄 Invoice</a> -->
+          <li><a href="../html/profile.html">👤 My Profile</a></li>
+        </ul>
+      </div>
 
-
-      </ul>
-    </div>
-
-    <div id="salesPanel" class="panel hidden">
-      <h2>Sales Panel</h2>
-      <ul>
-        <li><a href="../html/create-sale.html">Create Sale</a></li>
-        <li><a href="../html/mysales.html">My Sales</a></li>
-      </ul>
-    </div>
-  </div>
-
-<button onclick="sessionStorage.clear(); location.href='/html/login.html'">
-  Logout
-</button>
-
-<div class="notif-wrapper">
-  <button id="notifBtn" class="notif-btn">🔔</button>
-  <div id="notifDropdown" class="notif-dropdown"></div>
-</div>
-<div id="notificationBox"></div>
-
-
-<div class="export-bar">
-  <div class="export-title">Reports</div>
-
-  <div class="export-actions">
-    <!-- primary one-click buttons -->
-    <a href="/api/export/sales.csv"  class="btn btn-export" data-variant="csv">CSV</a>
-    <a href="/api/export/sales.xlsx" class="btn btn-export" data-variant="xlsx">Excel</a>
-    <a href="/api/export/sales.pdf"  class="btn btn-export" data-variant="pdf">PDF</a>
-
-    <!-- dropdown for more actions -->
-    <div class="export-menu">
-      <!-- <button class="btn btn-primary" id="exportMenuBtn">
-        <span class="btn-icon">📦</span> Export <span class="caret">▾</span>
-      </button> -->
-      <div class="menu-dropdown" id="exportDropdown">
-        <a href="/api/export/sales.csv">Download CSV</a>
-        <a href="/api/export/sales.xlsx">Download Excel</a>
-        <a href="/api/export/sales.pdf">Download PDF</a>
-        <hr />
-        <button class="menu-action" id="sendReportBtn">
-          ✉️ Email Daily Report
-        </button>
+      <div id="salesPanel" class="panel hidden">
+        <h2>Sales Panel</h2>
+        <ul>
+          <li><a href="../html/create-sale.html">Create Sale</a></li>
+          <li><a href="../html/mysales.html">My Sales</a></li>
+        </ul>
       </div>
     </div>
-  </div>
-</div>
 
+    <button onclick="sessionStorage.clear(); location.href='/html/login.html'">
+      Logout
+    </button>
 
+    <div class="notif-wrapper">
+      <button id="notifBtn" class="notif-btn">🔔</button>
+      <div id="notifDropdown" class="notif-dropdown"></div>
+    </div>
+    <div id="notificationBox"></div>
 
-<script>
-  window.addEventListener("DOMContentLoaded", async () => {
-    const userId = sessionStorage.getItem("userId");
+    <div class="export-bar">
+      <div class="export-title">Reports</div>
 
-    if (!userId) {
-      console.warn("❌ No userId found, redirecting...");
-      window.location.href = "/html/login.html";
-      return;
-    }
+      <div class="export-actions">
+        <!-- primary one-click buttons -->
+        <a
+          href="/api/export/sales.csv"
+          class="btn btn-export"
+          data-variant="csv"
+          >CSV</a
+        >
+        <a
+          href="/api/export/sales.xlsx"
+          class="btn btn-export"
+          data-variant="xlsx"
+          >Excel</a
+        >
+        <a
+          href="/api/export/sales.pdf"
+          class="btn btn-export"
+          data-variant="pdf"
+          >PDF</a
+        >
 
-    try {
-      const res = await fetch(`/api/user/${userId}`);
-      const data = await res.json();
+        <!-- dropdown for more actions -->
+        <div class="export-menu">
+          <!-- <button class="btn btn-primary" id="exportMenuBtn">
+        <span class="btn-icon">📦</span> Export <span class="caret">▾</span>
+      </button> -->
+          <div class="menu-dropdown" id="exportDropdown">
+            <a href="/api/export/sales.csv">Download CSV</a>
+            <a href="/api/export/sales.xlsx">Download Excel</a>
+            <a href="/api/export/sales.pdf">Download PDF</a>
+            <hr />
+            <button class="menu-action" id="sendReportBtn">
+              ✉️ Email Daily Report
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      if (!res.ok || !data.user) {
-        window.location.href = "/html/login.html";
-        return;
-      }
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        const userId = sessionStorage.getItem("userId");
 
-      const user = data.user;
+        if (!userId) {
+          console.warn("❌ No userId found, redirecting...");
+          window.location.href = "/html/login.html";
+          return;
+        }
 
-      document.getElementById("userRole").textContent = user.role;
+        try {
+          const res = await fetch(`/api/user/${userId}`);
+          const data = await res.json();
 
-      if (user.role === "admin") {
-        document.getElementById("adminPanel").classList.remove("hidden");
-      } else {
-        document.getElementById("salesPanel").classList.remove("hidden");
-      }
+          if (!res.ok || !data.user) {
+            window.location.href = "/html/login.html";
+            return;
+          }
 
-    } catch (err) {
-      console.error("Error loading user info:", err);
-      window.location.href = "/html/login.html";
-    }
-  });
+          const user = data.user;
 
+          document.getElementById("userRole").textContent = user.role;
 
+          if (user.role === "admin") {
+            document.getElementById("adminPanel").classList.remove("hidden");
+          } else {
+            document.getElementById("salesPanel").classList.remove("hidden");
+          }
+        } catch (err) {
+          console.error("Error loading user info:", err);
+          window.location.href = "/html/login.html";
+        }
+      });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const bell = document.getElementById("notifBtn");
-  const box = document.getElementById("notificationBox");
+      document.addEventListener("DOMContentLoaded", () => {
+        const bell = document.getElementById("notifBtn");
+        const box = document.getElementById("notificationBox");
 
-  if (!bell || !box) {
-    console.warn("Notification elements not found!");
-    return;
-  }
+        if (!bell || !box) {
+          console.warn("Notification elements not found!");
+          return;
+        }
 
-  bell.addEventListener("click", async () => {
-    box.style.display = box.style.display === "none" ? "block" : "none";
+        bell.addEventListener("click", async () => {
+          box.style.display = box.style.display === "none" ? "block" : "none";
 
-    if (box.style.display === "block") {
-      await loadNotifications();
-    }
-  });
+          if (box.style.display === "block") {
+            await loadNotifications();
+          }
+        });
 
-  async function loadNotifications() {
-    try {
-      const res = await fetch("/api/notifications");
-      const notifications = await res.json();
+        async function loadNotifications() {
+          try {
+            const res = await fetch("/api/notifications");
+            const notifications = await res.json();
 
-      if (!notifications.length) {
-        box.innerHTML = "<em>No notifications</em>";
-      } else {
-        box.innerHTML = notifications
-          .map(n => `
+            if (!notifications.length) {
+              box.innerHTML = "<em>No notifications</em>";
+            } else {
+              box.innerHTML = notifications
+                .map(
+                  (n) => `
             <div style="border-bottom:1px solid #ccc; padding:4px 0;">
               🔔 ${n.message}
               <button onclick="deleteNotif('${n._id}')" 
@@ -176,33 +183,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 🗑️
               </button>
             </div>
-          `)
-          .join("");
-      }
-    } catch (err) {
-      console.error("Failed to load notifications:", err);
-      box.innerHTML = "<div style='color:red;'>⚠️ Failed to load</div>";
-    }
-  }
+          `,
+                )
+                .join("");
+            }
+          } catch (err) {
+            console.error("Failed to load notifications:", err);
+            box.innerHTML = "<div style='color:red;'>⚠️ Failed to load</div>";
+          }
+        }
 
-  // Expose to global
-  window.deleteNotif = async function (id) {
-    try {
-      await fetch(`/api/notifications/${id}`, { method: "DELETE" });
-      await loadNotifications(); // Refresh list after delete
-    } catch (err) {
-      alert("❌ Failed to delete notification.");
-    }
-  };
-});
+        // Expose to global
+        window.deleteNotif = async function (id) {
+          try {
+            await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+            await loadNotifications(); // Refresh list after delete
+          } catch (err) {
+            alert("❌ Failed to delete notification.");
+          }
+        };
+      });
+    </script>
 
-
-
-
-  
-</script>
-
-<!-- 
+    <!-- 
 <script>
   const input = document.getElementById("globalSearch");
   const box   = document.getElementById("searchResults");
@@ -267,135 +270,133 @@ document.addEventListener("DOMContentLoaded", () => {
     showBox();
   }
 </script> -->
-<script src="../js/global-search.js" defer></script>
+    <script src="../js/global-search.js" defer></script>
 
+    <script>
+      // (() => {
+      //   // --- Static index (edit to your liking) ---
+      //   const INDEX = [
+      //     // Pages (quick nav)
+      //     { type: "page", name: "Dashboard",       link: "/html/dashboard.html",     icon: "🏠" },
+      //     { type: "page", name: "Manage Products", link: "/html/products.html",      icon: "📦" },
+      //     { type: "page", name: "View Sales",      link: "/html/viewsalesadmin.html",icon: "🧾" },
+      //     { type: "page", name: "Manage Users",    link: "/html/manage-users.html",  icon: "👥" },
+      //     { type: "page", name: "Analytics",       link: "/html/analytics.html",     icon: "📊" },
+      //     { type: "page", name: "Create Sale",     link: "/html/create-sale.html",   icon: "💸" },
+      //     { type: "page", name: "My Sales",        link: "/html/mysales.html",       icon: "🧾" },
+      //     { type: "page", name: "My Profile",      link: "/html/profile.html",       icon: "👤" },
 
-<script>
-// (() => {
-//   // --- Static index (edit to your liking) ---
-//   const INDEX = [
-//     // Pages (quick nav)
-//     { type: "page", name: "Dashboard",       link: "/html/dashboard.html",     icon: "🏠" },
-//     { type: "page", name: "Manage Products", link: "/html/products.html",      icon: "📦" },
-//     { type: "page", name: "View Sales",      link: "/html/viewsalesadmin.html",icon: "🧾" },
-//     { type: "page", name: "Manage Users",    link: "/html/manage-users.html",  icon: "👥" },
-//     { type: "page", name: "Analytics",       link: "/html/analytics.html",     icon: "📊" },
-//     { type: "page", name: "Create Sale",     link: "/html/create-sale.html",   icon: "💸" },
-//     { type: "page", name: "My Sales",        link: "/html/mysales.html",       icon: "🧾" },
-//     { type: "page", name: "My Profile",      link: "/html/profile.html",       icon: "👤" },
+      //     // Example “entities” (optional)
+      //     { type: "product", name: "Aloe Vera",    link: "/html/products.html#aloe", icon: "🪴" },
+      //     { type: "product", name: "Makarona1",    link: "/html/products.html#maka", icon: "🍝" },
+      //     { type: "user",    name: "maca",         link: "/html/manage-users.html#u-maca", icon: "🙍" },
+      //   ];
 
-//     // Example “entities” (optional)
-//     { type: "product", name: "Aloe Vera",    link: "/html/products.html#aloe", icon: "🪴" },
-//     { type: "product", name: "Makarona1",    link: "/html/products.html#maka", icon: "🍝" },
-//     { type: "user",    name: "maca",         link: "/html/manage-users.html#u-maca", icon: "🙍" },
-//   ];
+      //   const input = document.getElementById("globalSearch");
+      //   const box   = document.getElementById("searchResults");
+      //   if (!input || !box) return;
 
-//   const input = document.getElementById("globalSearch");
-//   const box   = document.getElementById("searchResults");
-//   if (!input || !box) return;
+      //   let activeIndex = -1; // for keyboard nav
+      //   let currentResults = [];
 
-//   let activeIndex = -1; // for keyboard nav
-//   let currentResults = [];
+      //   const render = (results, query) => {
+      //     box.innerHTML = "";
+      //     activeIndex = -1;
+      //     currentResults = results;
 
-//   const render = (results, query) => {
-//     box.innerHTML = "";
-//     activeIndex = -1;
-//     currentResults = results;
+      //     if (!query) { box.style.display = "none"; return; }
 
-//     if (!query) { box.style.display = "none"; return; }
+      //     if (results.length === 0) {
+      //       box.innerHTML = `<div class="sr-item sr-empty">No results found</div>`;
+      //       box.style.display = "block";
+      //       return;
+      //     }
 
-//     if (results.length === 0) {
-//       box.innerHTML = `<div class="sr-item sr-empty">No results found</div>`;
-//       box.style.display = "block";
-//       return;
-//     }
+      //     results.forEach((r, i) => {
+      //       const a = document.createElement("a");
+      //       a.href = r.link;
+      //       a.className = "sr-item";
+      //       a.setAttribute("data-idx", String(i));
+      //       a.innerHTML = `
+      //         <span class="sr-icon">${r.icon || "🔎"}</span>
+      //         <span class="sr-name">${highlight(r.name, query)}</span>
+      //         <span class="sr-type">${r.type}</span>
+      //       `;
+      //       a.addEventListener("mouseenter", () => setActive(i));
+      //       a.addEventListener("mouseleave", () => setActive(-1));
+      //       box.appendChild(a);
+      //     });
 
-//     results.forEach((r, i) => {
-//       const a = document.createElement("a");
-//       a.href = r.link;
-//       a.className = "sr-item";
-//       a.setAttribute("data-idx", String(i));
-//       a.innerHTML = `
-//         <span class="sr-icon">${r.icon || "🔎"}</span>
-//         <span class="sr-name">${highlight(r.name, query)}</span>
-//         <span class="sr-type">${r.type}</span>
-//       `;
-//       a.addEventListener("mouseenter", () => setActive(i));
-//       a.addEventListener("mouseleave", () => setActive(-1));
-//       box.appendChild(a);
-//     });
+      //     box.style.display = "block";
+      //   };
 
-//     box.style.display = "block";
-//   };
+      //   const highlight = (text, q) => {
+      //     const re = new RegExp(`(${escapeRegExp(q)})`, "ig");
+      //     return text.replace(re, "<mark>$1</mark>");
+      //   };
 
-//   const highlight = (text, q) => {
-//     const re = new RegExp(`(${escapeRegExp(q)})`, "ig");
-//     return text.replace(re, "<mark>$1</mark>");
-//   };
+      //   const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-//   const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      //   const search = (q) => {
+      //     const query = q.trim().toLowerCase();
+      //     if (!query) { render([], ""); return; }
 
-//   const search = (q) => {
-//     const query = q.trim().toLowerCase();
-//     if (!query) { render([], ""); return; }
+      //     // simple contains match across name & type
+      //     const res = INDEX.filter(x =>
+      //       x.name.toLowerCase().includes(query) ||
+      //       x.type.toLowerCase().includes(query)
+      //     ).slice(0, 8); // cap results
+      //     render(res, query);
+      //   };
 
-//     // simple contains match across name & type
-//     const res = INDEX.filter(x =>
-//       x.name.toLowerCase().includes(query) ||
-//       x.type.toLowerCase().includes(query)
-//     ).slice(0, 8); // cap results
-//     render(res, query);
-//   };
+      //   const setActive = (idx) => {
+      //     activeIndex = idx;
+      //     [...box.querySelectorAll(".sr-item")].forEach((el, i) => {
+      //       el.classList.toggle("active", i === activeIndex);
+      //     });
+      //   };
 
-//   const setActive = (idx) => {
-//     activeIndex = idx;
-//     [...box.querySelectorAll(".sr-item")].forEach((el, i) => {
-//       el.classList.toggle("active", i === activeIndex);
-//     });
-//   };
+      //   const openActive = () => {
+      //     if (activeIndex < 0) return;
+      //     const el = box.querySelector(`.sr-item[data-idx="${activeIndex}"]`);
+      //     if (el) el.click();
+      //   };
 
-//   const openActive = () => {
-//     if (activeIndex < 0) return;
-//     const el = box.querySelector(`.sr-item[data-idx="${activeIndex}"]`);
-//     if (el) el.click();
-//   };
+      //   // Debounce for nicer feel
+      //   let t;
+      //   input.addEventListener("input", () => {
+      //     clearTimeout(t);
+      //     t = setTimeout(() => search(input.value), 120);
+      //   });
 
-//   // Debounce for nicer feel
-//   let t;
-//   input.addEventListener("input", () => {
-//     clearTimeout(t);
-//     t = setTimeout(() => search(input.value), 120);
-//   });
+      //   // Keyboard navigation
+      //   input.addEventListener("keydown", (e) => {
+      //     const items = box.querySelectorAll(".sr-item");
+      //     if (box.style.display !== "block" || items.length === 0) return;
 
-//   // Keyboard navigation
-//   input.addEventListener("keydown", (e) => {
-//     const items = box.querySelectorAll(".sr-item");
-//     if (box.style.display !== "block" || items.length === 0) return;
+      //     if (e.key === "ArrowDown") {
+      //       e.preventDefault();
+      //       setActive((activeIndex + 1) % items.length);
+      //     } else if (e.key === "ArrowUp") {
+      //       e.preventDefault();
+      //       setActive((activeIndex - 1 + items.length) % items.length);
+      //     } else if (e.key === "Enter") {
+      //       e.preventDefault();
+      //       openActive();
+      //     } else if (e.key === "Escape") {
+      //       box.style.display = "none";
+      //       activeIndex = -1;
+      //     }
+      //   });
 
-//     if (e.key === "ArrowDown") {
-//       e.preventDefault();
-//       setActive((activeIndex + 1) % items.length);
-//     } else if (e.key === "ArrowUp") {
-//       e.preventDefault();
-//       setActive((activeIndex - 1 + items.length) % items.length);
-//     } else if (e.key === "Enter") {
-//       e.preventDefault();
-//       openActive();
-//     } else if (e.key === "Escape") {
-//       box.style.display = "none";
-//       activeIndex = -1;
-//     }
-//   });
-
-//   // Hide when clicking outside
-//   document.addEventListener("click", (e) => {
-//     if (!box.contains(e.target) && e.target !== input) {
-//       box.style.display = "none";
-//       activeIndex = -1;
-//     }
-//   });
-// })();
-</script>
-
-</body>
+      //   // Hide when clicking outside
+      //   document.addEventListener("click", (e) => {
+      //     if (!box.contains(e.target) && e.target !== input) {
+      //       box.style.display = "none";
+      //       activeIndex = -1;
+      //     }
+      //   });
+      // })();
+    </script>
+  </body>
 </html>

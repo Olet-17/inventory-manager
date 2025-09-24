@@ -1,87 +1,101 @@
-  window.addEventListener("DOMContentLoaded", () => {
-    console.log("✅ Dashboard script loaded");
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ Dashboard script loaded");
 
-    const rawUser = localStorage.getItem("user");
-    console.log("📦 Raw user:", rawUser);
+  const rawUser = localStorage.getItem("user");
+  console.log("📦 Raw user:", rawUser);
 
-    if (!rawUser) {
-      console.warn("❌ No user found. Redirecting to login...");
-      window.location.href = "/html/login.html";
-      return;
-    }
-
-    const user = JSON.parse(rawUser);
-    console.log("✅ Parsed user:", user);
-
-    const roleElement = document.getElementById("userRole");
-    if (roleElement) {
-      roleElement.textContent = user.role;
-    }
-
-    if (user.role === "admin") {
-      document.getElementById("adminPanel")?.classList.remove("hidden");
-    } else {
-      document.getElementById("salesPanel")?.classList.remove("hidden");
-    }
-  });
-
-  //  document.getElementById("notifBtn").addEventListener("click", async () => {
-  //     const dropdown = document.getElementById("notifDropdown");
-  //     dropdown.classList.toggle("hidden");
-
-  //     if (!dropdown.classList.contains("hidden")) {
-  //       try {
-  //         const res = await fetch("/api/notifications");
-  //         const data = await res.json();
-
-  //         dropdown.innerHTML = "";
-
-  //         if (data.length === 0) {
-  //           dropdown.innerHTML = "<p>No notifications</p>";
-  //           return;
-  //         }
-
-  //         data.forEach(notif => {
-  //           const p = document.createElement("p");
-  //           p.textContent = notif.message;
-  //           dropdown.appendChild(p);
-  //         });
-
-  //       } catch (err) {
-  //         dropdown.innerHTML = "<p>Failed to load notifications</p>";
-  //       }
-  //     }
-  //   });
-
-
-  const bell = document.getElementById("notifBtn");
- const dropdown = document.getElementById("notifDropdown");
-dropdown.classList.remove("hidden"); // once on load
-
-  // Ensure the old box (if present) is hidden and unused
-  const legacyBox = document.getElementById("notificationBox");
-  if (legacyBox) legacyBox.style.display = "none";
-
-  function openDropdown(){ dropdown.classList.add("show"); }
-  function closeDropdown(){ dropdown.classList.remove("show"); }
-  function toggleDropdown(){
-    if (dropdown.classList.contains("show")) closeDropdown();
-    else { openDropdown(); renderNotifications(); }
+  if (!rawUser) {
+    console.warn("❌ No user found. Redirecting to login...");
+    window.location.href = "/html/login.html";
+    return;
   }
 
-  bell.addEventListener("click", (e) => { e.stopPropagation(); toggleDropdown(); });
-  document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target) && e.target !== bell) closeDropdown();
-  });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDropdown(); });
+  const user = JSON.parse(rawUser);
+  console.log("✅ Parsed user:", user);
 
-  async function renderNotifications(){
-    try{
-      const res = await fetch("/api/notifications");
-      const list = await res.json();
+  const roleElement = document.getElementById("userRole");
+  if (roleElement) {
+    roleElement.textContent = user.role;
+  }
 
-      dropdown.innerHTML = (Array.isArray(list) && list.length)
-        ? list.map(n => `
+  if (user.role === "admin") {
+    document.getElementById("adminPanel")?.classList.remove("hidden");
+  } else {
+    document.getElementById("salesPanel")?.classList.remove("hidden");
+  }
+});
+
+//  document.getElementById("notifBtn").addEventListener("click", async () => {
+//     const dropdown = document.getElementById("notifDropdown");
+//     dropdown.classList.toggle("hidden");
+
+//     if (!dropdown.classList.contains("hidden")) {
+//       try {
+//         const res = await fetch("/api/notifications");
+//         const data = await res.json();
+
+//         dropdown.innerHTML = "";
+
+//         if (data.length === 0) {
+//           dropdown.innerHTML = "<p>No notifications</p>";
+//           return;
+//         }
+
+//         data.forEach(notif => {
+//           const p = document.createElement("p");
+//           p.textContent = notif.message;
+//           dropdown.appendChild(p);
+//         });
+
+//       } catch (err) {
+//         dropdown.innerHTML = "<p>Failed to load notifications</p>";
+//       }
+//     }
+//   });
+
+const bell = document.getElementById("notifBtn");
+const dropdown = document.getElementById("notifDropdown");
+dropdown.classList.remove("hidden"); // once on load
+
+// Ensure the old box (if present) is hidden and unused
+const legacyBox = document.getElementById("notificationBox");
+if (legacyBox) legacyBox.style.display = "none";
+
+function openDropdown() {
+  dropdown.classList.add("show");
+}
+function closeDropdown() {
+  dropdown.classList.remove("show");
+}
+function toggleDropdown() {
+  if (dropdown.classList.contains("show")) closeDropdown();
+  else {
+    openDropdown();
+    renderNotifications();
+  }
+}
+
+bell.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleDropdown();
+});
+document.addEventListener("click", (e) => {
+  if (!dropdown.contains(e.target) && e.target !== bell) closeDropdown();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeDropdown();
+});
+
+async function renderNotifications() {
+  try {
+    const res = await fetch("/api/notifications");
+    const list = await res.json();
+
+    dropdown.innerHTML =
+      Array.isArray(list) && list.length
+        ? list
+            .map(
+              (n) => `
             <div class="notification-item" style="display:flex;gap:8px;align-items:flex-start;padding:6px 2px;border-bottom:1px solid var(--border);">
               <span>🔔</span>
               <div class="notification-message" style="flex:1">${n.message}</div>
@@ -90,22 +104,23 @@ dropdown.classList.remove("hidden"); // once on load
                 🗑️
               </button>
             </div>
-          `).join("")
+          `,
+            )
+            .join("")
         : `<p><em>No notifications</em></p>`;
-    }catch{
-      dropdown.innerHTML = `<p style="color:#ef4444">⚠️ Failed to load</p>`;
-    }
+  } catch {
+    dropdown.innerHTML = `<p style="color:#ef4444">⚠️ Failed to load</p>`;
   }
-  
-  dropdown.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".notification-delete");
-    if (!btn) return;
-    try{
-      await fetch(`/api/notifications/${btn.dataset.id}`, { method: "DELETE" });
-      renderNotifications();
-    }catch{}
-  });
+}
 
+dropdown.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".notification-delete");
+  if (!btn) return;
+  try {
+    await fetch(`/api/notifications/${btn.dataset.id}`, { method: "DELETE" });
+    renderNotifications();
+  } catch {}
+});
 
 //   // js/globalSearch.js
 // document.addEventListener("DOMContentLoaded", () => {
@@ -165,4 +180,3 @@ dropdown.classList.remove("hidden"); // once on load
 
 //   resultsBox.style.display = "block";
 // });
-

@@ -16,9 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const sales = await res.json();
 
     // figure out if Role column is redundant
-    const roleSet = new Set(
-      sales.map(s => s?.soldBy?.role).filter(Boolean)
-    );
+    const roleSet = new Set(sales.map((s) => s?.soldBy?.role).filter(Boolean));
     const hideRoleCol = roleSet.size <= 1;
 
     // table header (add Actions column)
@@ -36,19 +34,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fmt = new Intl.NumberFormat(undefined, {
       style: "currency",
       currency: "USD",
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     });
 
     // rows
     tbody.innerHTML = "";
     for (const sale of sales) {
-      const name   = sale.product?.name ?? "-";
-      const qty    = Number(sale.quantity || 0);
-      const price  = Number(sale.product?.price || 0);
-      const total  = price * qty;
+      const name = sale.product?.name ?? "-";
+      const qty = Number(sale.quantity || 0);
+      const price = Number(sale.product?.price || 0);
+      const total = price * qty;
       const seller = sale.soldBy?.username ?? "-";
-      const role   = sale.soldBy?.role ?? "-";
-      const dateStr= new Date(sale.date).toLocaleDateString();
+      const role = sale.soldBy?.role ?? "-";
+      const dateStr = new Date(sale.date).toLocaleDateString();
 
       const tr = document.createElement("tr");
       tr.innerHTML = `

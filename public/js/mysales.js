@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     table.style.display = "table";
 
-    sales.forEach(sale => {
+    sales.forEach((sale) => {
       const row = document.createElement("tr");
 
       row.innerHTML = `
@@ -29,27 +29,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       tbody.appendChild(row);
     });
-
   } catch (err) {
     console.error("Failed to load sales:", err);
-    document.getElementById("notLoggedIn").textContent = "❌ Failed to load sales.";
+    document.getElementById("notLoggedIn").textContent =
+      "❌ Failed to load sales.";
     document.getElementById("notLoggedIn").style.display = "block";
   }
 });
 document.getElementById("exportCsvBtn").addEventListener("click", () => {
   fetch("/api/sales")
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       const headers = ["Product", "Quantity", "Date", "Sold By"];
-      const rows = data.map(sale => [
+      const rows = data.map((sale) => [
         sale.product.name,
         sale.quantity,
         new Date(sale.date).toLocaleDateString(),
-        sale.soldBy.username
+        sale.soldBy.username,
       ]);
 
-      let csvContent = "data:text/csv;charset=utf-8,"
-        + [headers, ...rows].map(e => e.join(",")).join("\n");
+      let csvContent =
+        "data:text/csv;charset=utf-8," +
+        [headers, ...rows].map((e) => e.join(",")).join("\n");
 
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
