@@ -428,6 +428,7 @@ app.put("/api/products/:id", async (req, res) => {
       product: updatedProduct,
     });
   } catch (err) {
+    console.error("[PUT /api/products/:id] failed:", err);
     res.status(500).json({ error: "Failed to update product" });
   }
 });
@@ -439,6 +440,7 @@ app.delete("/api/products/:id", async (req, res) => {
       return res.status(404).json({ error: "Product not found" });
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
+    console.error("[DELETE /api/products/:id] failed:", err);
     res.status(500).json({ error: "Failed to delete product" });
   }
 });
@@ -466,6 +468,7 @@ app.get("/api/sales", async (req, res) => {
 
     res.json(sales);
   } catch (err) {
+    console.error("❌ Error fetching filtered sales:", err);
     res.status(500).json({ error: "Failed to fetch filtered sales" });
   }
 });
@@ -716,6 +719,7 @@ app.get("/api/user/:id", async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json({ user });
   } catch (err) {
+    console.error("❌ Error fetching user by ID:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -847,7 +851,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="sales-report.pdf"',
+      "attachment; filename=\"sales-report.pdf\"",
     );
 
     // ----- doc -----
@@ -1027,7 +1031,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     doc
       .fontSize(9)
       .fillColor("#6b7280")
-      .text(`Page 1`, startX, doc.page.height - 40, {
+      .text("Page 1", startX, doc.page.height - 40, {
         width: usableW,
         align: "right",
       });
@@ -1126,7 +1130,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     doc
       .fontSize(9)
       .fillColor("#6b7280")
-      .text(`Page 2`, startX, doc.page.height - 40, {
+      .text("Page 2", startX, doc.page.height - 40, {
         width: usableW,
         align: "right",
       });
@@ -1678,7 +1682,7 @@ async function postToSlack(summary) {
 async function postToDiscord(summary) {
   if (!DISCORD_WEBHOOK_URL) return;
   const text =
-    `**Daily Sales**\n` +
+    "**Daily Sales**\n" +
     `Revenue: ${currency(summary.revenue)} · Orders: ${summary.orders} · Units: ${summary.units}\n` +
     `Low stock (< ${LOW_STOCK_THRESHOLD}): ${summary.lowStockCount}\n` +
     (summary.topProduct
