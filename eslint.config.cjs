@@ -7,12 +7,7 @@ module.exports = [
 
   // --- Node / server files ---
   {
-    files: [
-      "server.js",
-      "routes/**",
-      "*.config.cjs",
-      "*.config.js",
-    ],
+    files: ["server.js", "routes/**", "*.config.cjs", "*.config.js"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "commonjs",
@@ -24,9 +19,15 @@ module.exports = [
       // keep style rules light to reduce churn
       quotes: ["warn", "double"],
       semi: ["error", "always"],
-      
+
       // allow unused placeholders like (err, _next) without failing CI
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^(transporter|buildCsvBuffer)$" }],
+      "no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^(transporter|buildCsvBuffer)$",
+        },
+      ],
     },
   },
 
@@ -37,14 +38,14 @@ module.exports = [
       ecmaVersion: "latest",
       sourceType: "script",
       globals: {
-        ...globals.browser,     // window, document, fetch, URLSearchParams, setTimeout, etc.
-        Chart: "readonly",      // Chart.js global from CDN
+        ...globals.browser, // window, document, fetch, URLSearchParams, setTimeout, etc.
+        Chart: "readonly", // Chart.js global from CDN
       },
     },
     rules: {
       "no-console": "off",
       "no-empty": "off",
-      "no-unused-vars": "off",  // front-end helpers/handlers often trip this
+      "no-unused-vars": "off", // front-end helpers/handlers often trip this
     },
   },
 
@@ -56,7 +57,7 @@ module.exports = [
       sourceType: "commonjs",
       globals: {
         ...globals.node,
-        ...globals.jest,        // describe, test, expect, beforeAll, afterAll...
+        ...globals.jest, // describe, test, expect, beforeAll, afterAll...
       },
     },
     rules: {
