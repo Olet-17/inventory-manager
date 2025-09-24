@@ -5,8 +5,10 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const path=require("path")
 const PDFDocument = require("pdfkit");
+// const app = require("./app"); 
 
 dotenv.config();
+const isTest = process.env.NODE_ENV === 'test';
 
 
 
@@ -18,11 +20,11 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-mongoose.connect('mongodb://127.0.0.1:27017/inventoryDB', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+if (!isTest) {
+  mongoose.connect('mongodb://127.0.0.1:27017/inventoryDB')
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log(err));
+}
 
 // Skema e userit
 const userSchema = new mongoose.Schema({
@@ -370,11 +372,49 @@ app.get('/api/products', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-  const { name, price, quantity } = req.body;
-  const newProduct = new Product({ name, price, quantity });
-  await newProduct.save();
-  res.json({ message: 'Product added successfully!' });
+  try {
+    const {
+      name,
+      // allow both old & new field names
+      price,
+      unitPrice,
+      cost,
+      unitCost,
+      quantity,
+      sku,
+      reorderLevel
+    } = req.body;
+
+    if (!name) return res.status(400).json({ error: 'name is required' });
+
+    // normalize fields
+    const finalPrice = (typeof unitPrice === 'number') ? unitPrice
+                      : (typeof price === 'number')     ? price
+                      : 0;
+
+    const finalCost  = (typeof unitCost === 'number') ? unitCost
+                      : (typeof cost === 'number')     ? cost
+                      : 0;
+
+    const doc = await new Product({
+      name,
+      // keep both for compatibility if your schema has them
+      price: finalPrice,
+      unitPrice: finalPrice,
+      cost: finalCost,
+      unitCost: finalCost,
+      quantity: Number(quantity ?? 0),
+      sku,
+      reorderLevel: Number(reorderLevel ?? 5)
+    }).save();
+
+    return res.status(201).json(doc);
+  } catch (err) {
+    console.error('[POST /api/products] failed:', err);
+    return res.status(500).json({ error: 'Failed to add product' });
+  }
 });
+
 
 app.put('/api/products/:id', async (req, res) => {
   try {
@@ -1305,24 +1345,31 @@ async function buildCsvBuffer() {
   return Buffer.from(csv, 'utf-8');
 }
 // Runs at 08:00 every day
-cron.schedule('0 8 * * *', async () => {
-  try {
-    const csvBuffer = await buildCsvBuffer();
-    await transporter.sendMail({
-      from: '"Inventory Reports" <reports@yourapp.com>',
-      to: process.env.REPORTS_TO || 'admin@example.com',
-      subject: `Daily Sales Report - ${new Date().toLocaleDateString()}`,
-      text: 'Attached is the latest sales report (CSV).',
-      attachments: [
-        { filename: 'sales.csv', content: csvBuffer }
-      ],
-    });
-    console.log('✅ Daily report sent');
-  } catch (err) {
-    console.error('❌ Failed to send daily report:', err);
-  }
-});
+if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
+  const CRON_EXPR = process.env.SUMMARY_CRON || '0 18 * * *'; // default: 18:00 each day
+  const TIMEZONE  = process.env.TZ || 'UTC';
 
+  try {
+    cron.schedule(
+      CRON_EXPR,
+      async () => {
+        try {
+          console.log(`[summary] Running scheduled job @ ${new Date().toLocaleString()}`);
+          const result = await sendDailySummaryNow(); // <-- your existing function
+          console.log('[summary] Sent to Discord:', result);
+        } catch (err) {
+          console.error('[summary] Failed to send scheduled summary:', err);
+        }
+      },
+      { timezone: TIMEZONE }
+    );
+
+    global.__SUMMARY_JOB_STARTED__ = true;
+    console.log(`[summary] Scheduler ready. CRON="${CRON_EXPR}" TZ="${TIMEZONE}"`);
+  } catch (e) {
+    console.error('[summary] Failed to start scheduler:', e);
+  }
+}
 
 
 
@@ -1453,6 +1500,11 @@ async function sendDailySummaryNow() {
   return s;
 }
 
+module.exports = app;
+
+
+
+
 // --- 6) manual routes (for testing from Postman/browser) ---
 app.get('/api/admin/summary/preview', async (req, res) => {
   try {
@@ -1534,21 +1586,23 @@ app.post('/api/admin/summary/send-now', async (req, res) => {
 
 // --- 7) start the cron AFTER Mongo is connected (where you log "MongoDB Connected") ---
 // place this inside your .then(() => ...) after mongoose.connect(...)
-cron.schedule(DAILY_SUMMARY_CRON, async () => {
-  try {
-    await sendDailySummaryNow();
-    console.log('[DailySummary] sent');
-  } catch (e) {
-    console.error('[DailySummary] failed', e);
-  }
-});
-console.log(`[DailySummary] scheduled with "${DAILY_SUMMARY_CRON}"`);
+if (!isTest) {
+  cron.schedule(DAILY_SUMMARY_CRON, async () => {
+    try {
+      await sendDailySummaryNow();
+      console.log('[DailySummary] sent');
+    } catch (e) {
+      console.error('[DailySummary] failed', e);
+    }
+  });
+  console.log(`[DailySummary] scheduled with "${DAILY_SUMMARY_CRON}"`);
+}
 
 
 // -------- Daily Summary Scheduler --------
 
 // Prevent double-scheduling with nodemon/hot reloads
-if (!global.__SUMMARY_JOB_STARTED__) {
+if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
   const CRON_EXPR = process.env.SUMMARY_CRON || '0 18 * * *'; // default: 18:00 each day
   const TIMEZONE  = process.env.TZ || 'UTC';
 
@@ -1573,7 +1627,6 @@ if (!global.__SUMMARY_JOB_STARTED__) {
     console.error('[summary] Failed to start scheduler:', e);
   }
 }
-
 
 
 // --- in server.js ---
@@ -1676,10 +1729,13 @@ app.get('/', (req, res) => {
 
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (!isTest) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
+// module.exports = { User, Product, Sale, Notification };
 
 
 
