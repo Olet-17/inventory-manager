@@ -5,6 +5,9 @@ const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const multer = require("multer");
+const fs = require("fs");  
+const { randomBytes } = require('node:crypto');
 // const app = require("./app");
 
 dotenv.config();
@@ -15,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
+
 
 if (!isTest) {
   mongoose
@@ -46,6 +50,7 @@ const productSchema = new mongoose.Schema({
   cost: { type: Number, default: 0 },
   reorderLevel: { type: Number, default: 5 },
   quantity: Number,
+   imageUrl: { type: String, default: "" },
 });
 const Product = mongoose.model("Product", productSchema);
 
@@ -1492,6 +1497,83 @@ const transporter = nodemailer.createTransport({
 });
 
 // helper to build CSV buffer (reuse from above)
+// ----- Image upload setup -----
+const uploadDir = path.join(__dirname, "public", "uploads", "products");
+fs.mkdirSync(uploadDir, { recursive: true }); // ensure folder exists
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase(); // ✅ ext defined here
+    const name = randomBytes(16).toString('hex') + ext;        // ✅ now works
+    cb(null, name);
+  }
+});
+
+function fileFilter(req, file, cb) {
+  const ok = ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype);
+  cb(ok ? null : new Error("Only JPEG/PNG/WEBP images are allowed"), ok);
+}
+
+const uploadImage = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+});
+
+// Optional: tiny error handler for Multer errors on these routes
+function multerErrorHandler(err, req, res, next) {
+  if (err && err instanceof Error && (err.message.includes("allowed") || err.message.includes("File too large"))) {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+}
+
+// ----- Routes: set/replace a product's single image -----
+app.post("/api/products/:id/image", uploadImage.single("image"), multerErrorHandler, async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // Optional cleanup: delete previous local file (best-effort)
+    if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+      const rel = product.imageUrl.replace(/^\//, ""); // "uploads/..."
+      const oldPath = path.join(__dirname, "public", rel);
+      fs.unlink(oldPath, () => {}); // ignore errors
+    }
+
+    product.imageUrl = `/uploads/products/${req.file.filename}`;
+    await product.save();
+
+    res.json({ message: "Image uploaded", imageUrl: product.imageUrl, productId: product._id });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Upload failed" });
+  }
+});
+
+// ----- Optional: remove a product's image -----
+app.delete("/api/products/:id/image", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (!product.imageUrl) return res.json({ message: "No image to remove" });
+
+    if (product.imageUrl.startsWith("/uploads/")) {
+      const rel = product.imageUrl.replace(/^\//, ""); // "uploads/..."
+      const filePath = path.join(__dirname, "public", rel);
+      fs.unlink(filePath, () => {}); // ignore errors
+    }
+
+    product.imageUrl = "";
+    await product.save();
+    res.json({ message: "Image removed" });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Delete failed" });
+  }
+});
+
 
 async function buildCsvBuffer() {
   const sales = await fetchSales(); // last period or all; you can add filters
@@ -1860,7 +1942,7 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
 }
 
 // --- in server.js ---
-const multer = require("multer");
+
 const { parse } = require("csv-parse/sync");
 // sync API for simplicity
 
@@ -1966,4 +2048,4 @@ if (!isTest) {
   });
 }
 
-// module.exports = { User, Product, Sale, Notification };
+

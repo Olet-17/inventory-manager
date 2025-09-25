@@ -386,3 +386,80 @@ h2 {
   color: #cbd5e1; /* slate-300 */
   white-space: pre-wrap;
 }
+
+/* === Product Image Upload Section === */
+#imageUploadSection {
+  background: #111827;          /* dark card background */
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
+
+#imageUploadSection h3 {
+  color: #fff;
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+#imageUploadSection label {
+  color: #d1d5db;               /* lighter gray text */
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+#productSelect {
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+}
+
+#productSelect:focus {
+  outline: none;
+  border-color: #6366f1;        /* purple border highlight */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+#product-image {
+  margin-top: 12px;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 0.9rem;
+}
+
+#upload-image-btn {
+  margin-left: 10px;
+  margin-top: 12px;
+  background: #6366f1;          /* purple button */
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#upload-image-btn:hover {
+  background: #4f46e5;
+}
+
+#product-image-preview {
+  margin-top: 15px;
+  max-width: 200px;
+  border-radius: 8px;
+  border: 2px solid #374151;
+  display: block;
+}
+
+#uploadMsg {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}

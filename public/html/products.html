@@ -22,11 +22,30 @@
       </form>
 
       <p id="message"></p>
+      <section id="imageUploadSection" style="margin-top:16px;">
+  <h3>Product Image</h3>
+
+  <div style="margin-bottom:8px;">
+    <label for="productSelect">Select product:</label>
+    <select id="productSelect"></select>
+  </div>
+
+  <input type="file" id="product-image" accept="image/*" />
+  <button id="upload-image-btn" type="button">Upload Image</button>
+
+  <div style="margin-top:8px;">
+    <img id="product-image-preview" alt="Preview" style="max-width:180px;display:none;" />
+  </div>
+
+  <p id="uploadMsg" style="color:green;"></p>
+</section>
+
 
       <h2>Product List</h2>
       <table border="1" id="productTable">
         <thead>
           <tr>
+             <th>Image</th>
             <th>Name</th>
             <th>Price</th>
             <th>Quantity</th>
