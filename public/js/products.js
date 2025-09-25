@@ -3,16 +3,16 @@ console.log("✅ products.js loaded");
 
 // ===== DOM =====
 const productSection = document.getElementById("productSection");
-const notAdmin       = document.getElementById("notAdmin");
-const productForm    = document.getElementById("productForm");
-const messageEl      = document.getElementById("message");
+const notAdmin = document.getElementById("notAdmin");
+const productForm = document.getElementById("productForm");
+const messageEl = document.getElementById("message");
 
-const productSelect  = document.getElementById("productSelect");
-const fileInput      = document.getElementById("product-image");
-const previewImg     = document.getElementById("product-image-preview");
-const uploadBtn      = document.getElementById("upload-image-btn");
-const uploadMsg      = document.getElementById("uploadMsg");
-const uploadSection  = document.getElementById("imageUploadSection");
+const productSelect = document.getElementById("productSelect");
+const fileInput = document.getElementById("product-image");
+const previewImg = document.getElementById("product-image-preview");
+const uploadBtn = document.getElementById("upload-image-btn");
+const uploadMsg = document.getElementById("uploadMsg");
+const uploadSection = document.getElementById("imageUploadSection");
 
 // ===== STATE =====
 let productsCache = [];
@@ -55,9 +55,12 @@ function renderProductTable(items) {
     }
 
     // Name / Price / Qty
-    const tdName = document.createElement("td"); tdName.textContent = p.name || "";
-    const tdPrice = document.createElement("td"); tdPrice.textContent = `${p.price ?? 0}`;
-    const tdQty = document.createElement("td"); tdQty.textContent = `${p.quantity ?? 0}`;
+    const tdName = document.createElement("td");
+    tdName.textContent = p.name || "";
+    const tdPrice = document.createElement("td");
+    tdPrice.textContent = `${p.price ?? 0}`;
+    const tdQty = document.createElement("td");
+    tdQty.textContent = `${p.quantity ?? 0}`;
 
     // Actions
     const tdActions = document.createElement("td");
@@ -65,8 +68,12 @@ function renderProductTable(items) {
     selectBtn.textContent = "Select";
     selectBtn.addEventListener("click", () => {
       setCurrentProduct(p._id);
-      if (p.imageUrl) { previewImg.src = p.imageUrl; previewImg.style.display = "block"; }
-      else { previewImg.style.display = "none"; }
+      if (p.imageUrl) {
+        previewImg.src = p.imageUrl;
+        previewImg.style.display = "block";
+      } else {
+        previewImg.style.display = "none";
+      }
       uploadMsg.textContent = "";
       uploadSection.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -85,7 +92,7 @@ async function fetchProducts() {
   const res = await fetch("/api/products");
   const data = await res.json();
   // support either array or {products:[...]}
-  return Array.isArray(data) ? data : (data.products || []);
+  return Array.isArray(data) ? data : data.products || [];
 }
 
 async function loadProducts() {
@@ -133,7 +140,8 @@ productForm?.addEventListener("submit", async (e) => {
     // try {product: {...}} or plain object
     const created = data.product || data;
     if (!created || !created._id) {
-      messageEl.textContent = "Product created, but server did not return an _id";
+      messageEl.textContent =
+        "Product created, but server did not return an _id";
       messageEl.style.color = "orange";
     }
 
@@ -196,7 +204,10 @@ uploadBtn?.addEventListener("click", async () => {
   const fd = new FormData();
   fd.append("image", f);
 
-  const resp = await fetch(`/api/products/${currentProductId}/image`, { method: "POST", body: fd });
+  const resp = await fetch(`/api/products/${currentProductId}/image`, {
+    method: "POST",
+    body: fd,
+  });
   const data = await resp.json();
   if (!resp.ok) {
     uploadMsg.style.color = "red";

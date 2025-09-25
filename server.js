@@ -6,8 +6,8 @@ const cors = require("cors");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 const multer = require("multer");
-const fs = require("fs");  
-const { randomBytes } = require('node:crypto');
+const fs = require("fs");
+const { randomBytes } = require("node:crypto");
 // const app = require("./app");
 
 dotenv.config();
@@ -18,7 +18,6 @@ app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
-
 
 if (!isTest) {
   mongoose
@@ -50,7 +49,7 @@ const productSchema = new mongoose.Schema({
   cost: { type: Number, default: 0 },
   reorderLevel: { type: Number, default: 5 },
   quantity: Number,
-   imageUrl: { type: String, default: "" },
+  imageUrl: { type: String, default: "" },
 });
 const Product = mongoose.model("Product", productSchema);
 
@@ -1505,9 +1504,9 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase(); // ✅ ext defined here
-    const name = randomBytes(16).toString('hex') + ext;        // ✅ now works
+    const name = randomBytes(16).toString("hex") + ext; // ✅ now works
     cb(null, name);
-  }
+  },
 });
 
 function fileFilter(req, file, cb) {
@@ -1523,35 +1522,48 @@ const uploadImage = multer({
 
 // Optional: tiny error handler for Multer errors on these routes
 function multerErrorHandler(err, req, res, next) {
-  if (err && err instanceof Error && (err.message.includes("allowed") || err.message.includes("File too large"))) {
+  if (
+    err &&
+    err instanceof Error &&
+    (err.message.includes("allowed") || err.message.includes("File too large"))
+  ) {
     return res.status(400).json({ error: err.message });
   }
   next(err);
 }
 
 // ----- Routes: set/replace a product's single image -----
-app.post("/api/products/:id/image", uploadImage.single("image"), multerErrorHandler, async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+app.post(
+  "/api/products/:id/image",
+  uploadImage.single("image"),
+  multerErrorHandler,
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ error: "Product not found" });
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ error: "Product not found" });
 
-    // Optional cleanup: delete previous local file (best-effort)
-    if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
-      const rel = product.imageUrl.replace(/^\//, ""); // "uploads/..."
-      const oldPath = path.join(__dirname, "public", rel);
-      fs.unlink(oldPath, () => {}); // ignore errors
+      // Optional cleanup: delete previous local file (best-effort)
+      if (product.imageUrl && product.imageUrl.startsWith("/uploads/")) {
+        const rel = product.imageUrl.replace(/^\//, ""); // "uploads/..."
+        const oldPath = path.join(__dirname, "public", rel);
+        fs.unlink(oldPath, () => {}); // ignore errors
+      }
+
+      product.imageUrl = `/uploads/products/${req.file.filename}`;
+      await product.save();
+
+      res.json({
+        message: "Image uploaded",
+        imageUrl: product.imageUrl,
+        productId: product._id,
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message || "Upload failed" });
     }
-
-    product.imageUrl = `/uploads/products/${req.file.filename}`;
-    await product.save();
-
-    res.json({ message: "Image uploaded", imageUrl: product.imageUrl, productId: product._id });
-  } catch (err) {
-    res.status(500).json({ error: err.message || "Upload failed" });
-  }
-});
+  },
+);
 
 // ----- Optional: remove a product's image -----
 app.delete("/api/products/:id/image", async (req, res) => {
@@ -1573,7 +1585,6 @@ app.delete("/api/products/:id/image", async (req, res) => {
     res.status(500).json({ error: err.message || "Delete failed" });
   }
 });
-
 
 async function buildCsvBuffer() {
   const sales = await fetchSales(); // last period or all; you can add filters
@@ -2047,5 +2058,3 @@ if (!isTest) {
     console.log(`Server running on port ${PORT}`);
   });
 }
-
-

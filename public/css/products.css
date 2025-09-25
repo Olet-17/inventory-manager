@@ -389,7 +389,7 @@ h2 {
 
 /* === Product Image Upload Section === */
 #imageUploadSection {
-  background: #111827;          /* dark card background */
+  background: #111827; /* dark card background */
   border-radius: 12px;
   padding: 20px;
   margin-top: 20px;
@@ -404,7 +404,7 @@ h2 {
 }
 
 #imageUploadSection label {
-  color: #d1d5db;               /* lighter gray text */
+  color: #d1d5db; /* lighter gray text */
   margin-right: 8px;
   font-weight: 500;
 }
@@ -420,7 +420,7 @@ h2 {
 
 #productSelect:focus {
   outline: none;
-  border-color: #6366f1;        /* purple border highlight */
+  border-color: #6366f1; /* purple border highlight */
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
 }
 
@@ -437,7 +437,7 @@ h2 {
 #upload-image-btn {
   margin-left: 10px;
   margin-top: 12px;
-  background: #6366f1;          /* purple button */
+  background: #6366f1; /* purple button */
   color: #fff;
   font-weight: 600;
   border: none;
