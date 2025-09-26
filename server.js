@@ -8,23 +8,38 @@ const PDFDocument = require("pdfkit");
 const multer = require("multer");
 const fs = require("fs");
 const { randomBytes } = require("node:crypto");
-// const app = require("./app");
 
 dotenv.config();
-const isTest = process.env.NODE_ENV === "test";
 
+const isTest = process.env.NODE_ENV === "test";
 const app = express();
+
 app.use(cors());
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads"))); // ensure uploads are served
 
-if (!isTest) {
-  mongoose
-    .connect("mongodb://127.0.0.1:27017/inventoryDB")
-    .then(() => console.log("MongoDB Connected"))
-    .catch((err) => console.log(err));
+// ---- DB connection (use env, fallback to local for non-Docker dev) ----
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
+
+async function start() {
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log("[DB] connected:", MONGO_URI);
+
+    if (!isTest) {
+      const PORT = process.env.PORT || 5000;
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    }
+  } catch (err) {
+    console.error("[DB] connection error:", err);
+    process.exit(1); // fail fast in Docker if DB isn’t reachable
+  }
 }
+
+if (!isTest) start();
 
 // Skema e userit
 const userSchema = new mongoose.Schema({
@@ -2052,9 +2067,9 @@ app.get("/", (req, res) => {
   res.redirect("/html/login.html");
 });
 
-const PORT = process.env.PORT || 5000;
-if (!isTest) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// const PORT = process.env.PORT || 5000;
+// if (!isTest) {
+//   app.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`);
+//   });
+// }
