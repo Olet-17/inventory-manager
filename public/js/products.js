@@ -46,10 +46,22 @@ function ensureImageModal() {
     cursor: pointer; user-select: none;
     z-index: 10000; transition: background .2s, transform .1s;
   `;
-  closeBtn.addEventListener("mouseenter", () => (closeBtn.style.background = "rgba(255,255,255,0.2)"));
-  closeBtn.addEventListener("mouseleave", () => (closeBtn.style.background = "rgba(255,255,255,0.12)"));
-  closeBtn.addEventListener("mousedown", () => (closeBtn.style.transform = "scale(0.96)"));
-  closeBtn.addEventListener("mouseup", () => (closeBtn.style.transform = "scale(1)"));
+  closeBtn.addEventListener(
+    "mouseenter",
+    () => (closeBtn.style.background = "rgba(255,255,255,0.2)"),
+  );
+  closeBtn.addEventListener(
+    "mouseleave",
+    () => (closeBtn.style.background = "rgba(255,255,255,0.12)"),
+  );
+  closeBtn.addEventListener(
+    "mousedown",
+    () => (closeBtn.style.transform = "scale(0.96)"),
+  );
+  closeBtn.addEventListener(
+    "mouseup",
+    () => (closeBtn.style.transform = "scale(1)"),
+  );
   closeBtn.addEventListener("click", () => (modal.style.display = "none"));
 
   const img = document.createElement("img");
@@ -84,7 +96,6 @@ function openImageModal(src) {
 }
 
 // ===== Modify your renderProductTable =====
-
 
 // ===== HELPERS =====
 function setCurrentProduct(id) {
@@ -219,7 +230,8 @@ productForm?.addEventListener("submit", async (e) => {
 
     const created = data.product || data;
     if (!created || !created._id) {
-      messageEl.textContent = "Product created, but server did not return an _id";
+      messageEl.textContent =
+        "Product created, but server did not return an _id";
       messageEl.style.color = "orange";
     }
 
