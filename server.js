@@ -20,7 +20,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads"))); // ensure uploads are served
 
 // ---- DB connection (use env, fallback to local for non-Docker dev) ----
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
+const MONGO_URI =
+  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
 
 async function start() {
   try {
