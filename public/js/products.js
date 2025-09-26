@@ -17,6 +17,126 @@ const uploadSection = document.getElementById("imageUploadSection");
 // ===== STATE =====
 let productsCache = [];
 let currentProductId = null;
+// ===== LIGHTBOX (create once) =====
+function ensureImageModal() {
+  // If a modal exists but has no close button, or you want a fresh one, remove it.
+  const old = document.getElementById("imageModal");
+  if (old) old.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "imageModal";
+  modal.style.cssText = `
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,.85);
+    display:flex; justify-content:center; align-items:center;
+  `;
+
+  // Close button in the overlay (top-right)
+  const closeBtn = document.createElement("button");
+  closeBtn.id = "imageModalClose";
+  closeBtn.setAttribute("aria-label", "Close");
+  closeBtn.textContent = "✖";
+  closeBtn.style.cssText = `
+    position: fixed; top: 16px; right: 20px;
+    width: 40px; height: 40px; border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(255,255,255,0.12);
+    color: #fff; font-size: 22px; line-height: 1;
+    border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer; user-select: none;
+    z-index: 10000; transition: background .2s, transform .1s;
+  `;
+  closeBtn.addEventListener("mouseenter", () => (closeBtn.style.background = "rgba(255,255,255,0.2)"));
+  closeBtn.addEventListener("mouseleave", () => (closeBtn.style.background = "rgba(255,255,255,0.12)"));
+  closeBtn.addEventListener("mousedown", () => (closeBtn.style.transform = "scale(0.96)"));
+  closeBtn.addEventListener("mouseup", () => (closeBtn.style.transform = "scale(1)"));
+  closeBtn.addEventListener("click", () => (modal.style.display = "none"));
+
+  const img = document.createElement("img");
+  img.id = "modalImg";
+  img.alt = "Product Preview";
+  img.style.cssText = `
+    max-width: 90%; max-height: 90%;
+    border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,.5);
+  `;
+
+  modal.appendChild(closeBtn);
+  modal.appendChild(img);
+  document.body.appendChild(modal);
+
+  // Close if background clicked (not the image or the button)
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+  // Close on Escape
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") modal.style.display = "none";
+  });
+}
+
+// ===== OPEN MODAL =====
+function openImageModal(src) {
+  ensureImageModal();
+  const modal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("modalImg");
+  modalImg.src = src;
+  modal.style.display = "flex"; // flex so image stays centered
+}
+
+// ===== Modify your renderProductTable =====
+function renderProductTable(items) {
+  const tbody = document.querySelector("#productTable tbody");
+  tbody.innerHTML = "";
+
+  items.forEach((p) => {
+    const tr = document.createElement("tr");
+
+    // Image
+    const tdImg = document.createElement("td");
+    if (p.imageUrl) {
+      const img = document.createElement("img");
+      img.src = p.imageUrl;
+      img.alt = "product";
+      img.style.maxWidth = "70px";
+      img.style.cursor = "pointer";
+      img.addEventListener("click", () => openImageModal(p.imageUrl)); // 👈 zoom on click
+      tdImg.appendChild(img);
+    } else {
+      tdImg.textContent = "—";
+    }
+
+    // rest of your code unchanged...
+    const tdName = document.createElement("td");
+    tdName.textContent = p.name || "";
+    const tdPrice = document.createElement("td");
+    tdPrice.textContent = `${p.price ?? 0}`;
+    const tdQty = document.createElement("td");
+    tdQty.textContent = `${p.quantity ?? 0}`;
+
+    const tdActions = document.createElement("td");
+    const selectBtn = document.createElement("button");
+    selectBtn.textContent = "Select";
+    selectBtn.addEventListener("click", () => {
+      setCurrentProduct(p._id);
+      if (p.imageUrl) {
+        previewImg.src = p.imageUrl;
+        previewImg.style.display = "block";
+      } else {
+        previewImg.style.display = "none";
+      }
+      uploadMsg.textContent = "";
+      uploadSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    tdActions.appendChild(selectBtn);
+
+    tr.appendChild(tdImg);
+    tr.appendChild(tdName);
+    tr.appendChild(tdPrice);
+    tr.appendChild(tdQty);
+    tr.appendChild(tdActions);
+    tbody.appendChild(tr);
+  });
+}
 
 // ===== HELPERS =====
 function setCurrentProduct(id) {
@@ -49,6 +169,12 @@ function renderProductTable(items) {
       img.src = p.imageUrl;
       img.alt = "product";
       img.style.maxWidth = "70px";
+      img.style.maxHeight = "70px";
+      img.style.borderRadius = "6px";
+      img.style.objectFit = "cover";
+      img.style.cursor = "pointer";
+      // 🔍 click to open modal
+      img.addEventListener("click", () => openImageModal(p.imageUrl));
       tdImg.appendChild(img);
     } else {
       tdImg.textContent = "—";
@@ -79,6 +205,13 @@ function renderProductTable(items) {
     });
     tdActions.appendChild(selectBtn);
 
+    // (optional) Delete button
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "Delete";
+    delBtn.style.marginLeft = "8px";
+    delBtn.addEventListener("click", () => deleteProduct(p._id));
+    tdActions.appendChild(delBtn);
+
     tr.appendChild(tdImg);
     tr.appendChild(tdName);
     tr.appendChild(tdPrice);
@@ -91,7 +224,7 @@ function renderProductTable(items) {
 async function fetchProducts() {
   const res = await fetch("/api/products");
   const data = await res.json();
-  // support either array or {products:[...]}
+  // support either array or { products: [...] }
   return Array.isArray(data) ? data : data.products || [];
 }
 
@@ -111,7 +244,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
   productSection.style.display = "block";
-
   await loadProducts();
 });
 
@@ -137,15 +269,12 @@ productForm?.addEventListener("submit", async (e) => {
       return;
     }
 
-    // try {product: {...}} or plain object
     const created = data.product || data;
     if (!created || !created._id) {
-      messageEl.textContent =
-        "Product created, but server did not return an _id";
+      messageEl.textContent = "Product created, but server did not return an _id";
       messageEl.style.color = "orange";
     }
 
-    // update caches/UI
     productsCache.unshift(created);
     renderProductTable(productsCache);
     populateProductSelect(productsCache);
@@ -226,14 +355,13 @@ uploadBtn?.addEventListener("click", async () => {
   uploadMsg.textContent = "Image uploaded!";
 });
 
-// ===== DELETE PRODUCT (kept from your version) =====
+// ===== DELETE PRODUCT =====
 async function deleteProduct(id) {
   if (!confirm("Are you sure?")) return;
   try {
     const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (res.ok) {
-      alert("Deleted ✅");
       productsCache = productsCache.filter((p) => p._id !== id);
       renderProductTable(productsCache);
       populateProductSelect(productsCache);
@@ -241,6 +369,7 @@ async function deleteProduct(id) {
         setCurrentProduct(productsCache[0]?._id || null);
         previewImg.style.display = "none";
       }
+      alert("Deleted ✅");
     } else {
       alert(data.error || "Failed to delete");
     }
@@ -249,4 +378,4 @@ async function deleteProduct(id) {
     alert("Server error");
   }
 }
-window.deleteProduct = deleteProduct; // expose for inline onclick
+window.deleteProduct = deleteProduct;
