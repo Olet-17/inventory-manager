@@ -84,59 +84,7 @@ function openImageModal(src) {
 }
 
 // ===== Modify your renderProductTable =====
-function renderProductTable(items) {
-  const tbody = document.querySelector("#productTable tbody");
-  tbody.innerHTML = "";
 
-  items.forEach((p) => {
-    const tr = document.createElement("tr");
-
-    // Image
-    const tdImg = document.createElement("td");
-    if (p.imageUrl) {
-      const img = document.createElement("img");
-      img.src = p.imageUrl;
-      img.alt = "product";
-      img.style.maxWidth = "70px";
-      img.style.cursor = "pointer";
-      img.addEventListener("click", () => openImageModal(p.imageUrl)); // 👈 zoom on click
-      tdImg.appendChild(img);
-    } else {
-      tdImg.textContent = "—";
-    }
-
-    // rest of your code unchanged...
-    const tdName = document.createElement("td");
-    tdName.textContent = p.name || "";
-    const tdPrice = document.createElement("td");
-    tdPrice.textContent = `${p.price ?? 0}`;
-    const tdQty = document.createElement("td");
-    tdQty.textContent = `${p.quantity ?? 0}`;
-
-    const tdActions = document.createElement("td");
-    const selectBtn = document.createElement("button");
-    selectBtn.textContent = "Select";
-    selectBtn.addEventListener("click", () => {
-      setCurrentProduct(p._id);
-      if (p.imageUrl) {
-        previewImg.src = p.imageUrl;
-        previewImg.style.display = "block";
-      } else {
-        previewImg.style.display = "none";
-      }
-      uploadMsg.textContent = "";
-      uploadSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    tdActions.appendChild(selectBtn);
-
-    tr.appendChild(tdImg);
-    tr.appendChild(tdName);
-    tr.appendChild(tdPrice);
-    tr.appendChild(tdQty);
-    tr.appendChild(tdActions);
-    tbody.appendChild(tr);
-  });
-}
 
 // ===== HELPERS =====
 function setCurrentProduct(id) {

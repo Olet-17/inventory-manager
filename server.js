@@ -855,7 +855,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="sales-report.pdf"',
+      "attachment; filename=\"sales-report.pdf\"",
     );
 
     // ----- doc -----
