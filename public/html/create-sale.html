@@ -10,14 +10,26 @@
     <div class="login-wrapper">
       <div class="login-card">
         <h2>Create Sale</h2>
-        <form id="saleForm">
-          <select id="productSelect" required>
-            <option value="">Select a Product</option>
-          </select>
-          <input type="number" id="quantity" placeholder="Quantity" min="1" required />
-          <button type="submit">Submit Sale</button>
-        </form>
-        <p id="message" class="message"></p>
+
+        <div id="saleUI">
+          <div style="margin: 8px 0; color: #9ca3af" id="summary"></div>
+
+          <table id="productTable" border="1" style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="width: 60px">Pick</th>
+                <th>Name</th>
+                <th style="width: 90px">Price</th>
+                <th style="width: 100px">In Stock</th>
+                <th style="width: 110px">Qty</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <button id="submitSale" type="button" style="margin-top: 12px">Sell Selected</button>
+          <p id="message" class="message"></p>
+        </div>
       </div>
     </div>
 

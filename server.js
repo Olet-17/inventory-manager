@@ -1229,68 +1229,101 @@ app.put("/api/user/:id/password", async (req, res) => {
 // Shitja e produktit pa autentifikim me token
 app.post("/api/sales", async (req, res) => {
   try {
-    const { productId, quantity, soldBy } = req.body;
+    const { soldBy, productId, quantity, items } = req.body;
 
-    // 1) Validate inputs
-    if (!productId || !quantity) {
-      return res.status(400).json({ error: "productId and quantity are required" });
+    if (!soldBy) return res.status(400).json({ error: "soldBy (user id) is required" });
+
+    // Normalize to an array of { productId, quantity }
+    let lines = Array.isArray(items) ? items : [{ productId, quantity }];
+
+    // Basic shape checks
+    lines = lines
+      .map((l) => ({
+        productId: String(l.productId || "").trim(),
+        quantity: parseInt(l.quantity, 10) || 0,
+      }))
+      .filter((l) => l.productId && l.quantity > 0);
+
+    if (!lines.length) return res.status(400).json({ error: "No valid items to sell" });
+
+    // Optionally merge duplicate productIds (sum quantities)
+    const merged = new Map();
+    for (const l of lines) merged.set(l.productId, (merged.get(l.productId) || 0) + l.quantity);
+    lines = Array.from(merged, ([pid, q]) => ({ productId: pid, quantity: q }));
+
+    // Load seller
+    const user = await User.findById(soldBy).select("_id username role");
+    if (!user) return res.status(404).json({ error: "User (soldBy) not found" });
+
+    // Load products
+    const ids = lines.map((l) => l.productId);
+    const products = await Product.find({ _id: { $in: ids } });
+    const pmap = new Map(products.map((p) => [p._id.toString(), p]));
+
+    // Validate existence & stock
+    for (const l of lines) {
+      const p = pmap.get(l.productId);
+      if (!p) return res.status(404).json({ error: `Product not found (${l.productId})` });
+      if (p.quantity < l.quantity)
+        return res
+          .status(400)
+          .json({
+            error: `Not enough stock for ${p.name} (have ${p.quantity}, need ${l.quantity})`,
+          });
     }
-    if (!soldBy) {
-      return res.status(400).json({ error: "soldBy (user id) is required" });
+
+    // Decrement stock atomically per line (no replica set required)
+    const ops = lines.map((l) => ({
+      updateOne: {
+        filter: { _id: l.productId, quantity: { $gte: l.quantity } },
+        update: { $inc: { quantity: -l.quantity } },
+      },
+    }));
+    const result = await Product.bulkWrite(ops, { ordered: true });
+
+    if (result.matchedCount !== lines.length || result.modifiedCount !== lines.length) {
+      return res.status(409).json({ error: "Stock changed; refresh and try again." });
     }
 
-    // 2) Load product and user
-    const [product, user] = await Promise.all([
-      Product.findById(productId),
-      User.findById(soldBy).select("_id username role"),
-    ]);
-
-    if (!product) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-    if (!user) {
-      return res.status(404).json({ error: "User (soldBy) not found" });
-    }
-    if (product.quantity < quantity) {
-      return res.status(400).json({ error: "Not enough stock" });
-    }
-
-    // 3) Update stock
-    product.quantity -= quantity;
-    await product.save();
-
-    // 4) Snapshot price & cost for accurate profit tracking
-    const unitPrice = product.price ?? 0;
-    const unitCost = product.cost ?? 0;
-
-    // 5) Create sale (snapshotting price/cost)
-    const sale = await new Sale({
-      product: product._id,
-      quantity,
-      soldBy: user._id,
-      unitPrice,
-      unitCost,
-    }).save();
-
-    // 6) Notifications
-    await Notification.create({
-      message: `💸 ${quantity} x ${product.name} sold by ${user.username}`,
-      type: "success",
+    // Create one Sale document per line (keeps your existing Sale schema)
+    const salesToInsert = lines.map((l) => {
+      const p = pmap.get(l.productId);
+      return {
+        product: p._id,
+        quantity: l.quantity,
+        soldBy: user._id,
+        unitPrice: p.price ?? 0,
+        unitCost: p.cost ?? 0,
+      };
     });
+    const sales = await Sale.insertMany(salesToInsert);
 
-    if (product.quantity < 5) {
-      await Notification.create({
-        message: `⚠️ Low stock: Only ${product.quantity} x ${product.name} left!`,
-        type: "warning",
+    // Notifications (success + low stock)
+    const notes = [];
+    for (const l of lines) {
+      const p = await Product.findById(l.productId).select("name quantity"); // post-decrement qty
+      notes.push({
+        message: `💸 ${l.quantity} x ${p.name} sold by ${user.username}`,
+        type: "success",
       });
+      if (typeof p.quantity === "number" && p.quantity < 5) {
+        notes.push({
+          message: `⚠️ Low stock: Only ${p.quantity} x ${p.name} left!`,
+          type: "warning",
+        });
+      }
     }
+    if (notes.length) await Notification.insertMany(notes);
 
-    // 7) Return populated sale so UI shows seller/product info + snapshots
-    const populatedSale = await Sale.findById(sale._id)
+    // Optionally populate for UI
+    const populated = await Sale.find({ _id: { $in: sales.map((s) => s._id) } })
       .populate("product", "name price cost")
       .populate("soldBy", "username role");
 
-    res.json({ message: "Sale completed!", sale: populatedSale });
+    res.status(201).json({
+      message: lines.length > 1 ? "Sale completed (multiple items)!" : "Sale completed!",
+      sales: populated,
+    });
   } catch (err) {
     console.error("❌ Error during sale:", err);
     res.status(500).json({ error: "Failed to complete sale" });
