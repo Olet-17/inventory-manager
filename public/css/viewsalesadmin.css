@@ -18,8 +18,7 @@
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   --radius: 14px;
   --maxw: 1080px;
-  --font:
-    Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -50,17 +49,8 @@ body {
   font-family: var(--font);
   color: var(--text);
   background:
-    radial-gradient(
-      1200px 600px at 10% -10%,
-      rgba(79, 70, 229, 0.12),
-      transparent 60%
-    ),
-    radial-gradient(
-      1000px 600px at 110% -20%,
-      rgba(34, 197, 94, 0.1),
-      transparent 55%
-    ),
-    var(--bg);
+    radial-gradient(1200px 600px at 10% -10%, rgba(79, 70, 229, 0.12), transparent 60%),
+    radial-gradient(1000px 600px at 110% -20%, rgba(34, 197, 94, 0.1), transparent 55%), var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding: 28px 0 40px;
@@ -111,9 +101,7 @@ h1 {
   font-size: 0.9rem;
   letter-spacing: 0.2px;
   color: var(--text);
-  background:
-    linear-gradient(180deg, rgba(79, 70, 229, 0.12), transparent 60%),
-    var(--surface);
+  background: linear-gradient(180deg, rgba(79, 70, 229, 0.12), transparent 60%), var(--surface);
   border-bottom: 1px solid var(--border);
 }
 

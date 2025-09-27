@@ -31,8 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   } catch (err) {
     console.error("Failed to load sales:", err);
-    document.getElementById("notLoggedIn").textContent =
-      "❌ Failed to load sales.";
+    document.getElementById("notLoggedIn").textContent = "❌ Failed to load sales.";
     document.getElementById("notLoggedIn").style.display = "block";
   }
 });
@@ -49,8 +48,7 @@ document.getElementById("exportCsvBtn").addEventListener("click", () => {
       ]);
 
       let csvContent =
-        "data:text/csv;charset=utf-8," +
-        [headers, ...rows].map((e) => e.join(",")).join("\n");
+        "data:text/csv;charset=utf-8," + [headers, ...rows].map((e) => e.join(",")).join("\n");
 
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");

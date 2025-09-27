@@ -13,16 +13,10 @@ window.addEventListener("DOMContentLoaded", () => {
   let flatItems = [];
 
   const escapeHtml = (s) =>
-    String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+    String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const hi = (label, q) => {
     if (!q) return escapeHtml(label);
-    const re = new RegExp(
-      `(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "ig",
-    );
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "ig");
     return escapeHtml(label).replace(re, "<mark>$1</mark>");
   };
 
@@ -99,10 +93,7 @@ window.addEventListener("DOMContentLoaded", () => {
       .filter((s) => {
         const pname = s.product?.name || "";
         const seller = s.soldBy?.username || "";
-        return (
-          pname.toLowerCase().includes(qlc) ||
-          seller.toLowerCase().includes(qlc)
-        );
+        return pname.toLowerCase().includes(qlc) || seller.toLowerCase().includes(qlc);
       })
       .slice(0, 8);
 
@@ -208,11 +199,7 @@ window.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       move(-1);
     } else if (e.key === "Enter") {
-      if (
-        results.classList.contains("show") &&
-        activeIndex >= 0 &&
-        flatItems[activeIndex]
-      ) {
+      if (results.classList.contains("show") && activeIndex >= 0 && flatItems[activeIndex]) {
         e.preventDefault();
         flatItems[activeIndex].click();
       }

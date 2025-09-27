@@ -20,8 +20,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads"))); // ensure uploads are served
 
 // ---- DB connection (use env, fallback to local for non-Docker dev) ----
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
 
 async function start() {
   try {
@@ -106,9 +105,7 @@ async function fetchSales({ userId, startDate, endDate } = {}) {
 
 // --- FAST INDEXES (do this once, after models are created) ---
 Product.collection.createIndex({ name: "text" }).catch(() => {});
-User.collection
-  .createIndex({ username: "text", email: "text" })
-  .catch(() => {});
+User.collection.createIndex({ username: "text", email: "text" }).catch(() => {});
 
 // --- Unified search ---
 app.get("/api/search", async (req, res) => {
@@ -140,10 +137,7 @@ app.get("/api/search", async (req, res) => {
           ],
         };
 
-    const users = await User.find(userFilter)
-      .limit(limit)
-      .select("username email role")
-      .lean();
+    const users = await User.find(userFilter).limit(limit).select("username email role").lean();
 
     // SALES (match on product name or seller username)
     const sales = await Sale.find()
@@ -253,9 +247,7 @@ app.get("/api/search", async (req, res) => {
 
 app.get("/api/notifications", async (req, res) => {
   try {
-    const notifications = await Notification.find()
-      .sort({ createdAt: -1 })
-      .limit(10); // i kthen 10 më të rejat
+    const notifications = await Notification.find().sort({ createdAt: -1 }).limit(10); // i kthen 10 më të rejat
     res.json(notifications);
   } catch (err) {
     console.error("❌ Failed to fetch notifications:", err);
@@ -271,9 +263,7 @@ app.post("/api/register", async (req, res) => {
   email = email?.trim();
 
   if (!username || !password || !role) {
-    return res
-      .status(400)
-      .json({ error: "Username, password, and role are required" });
+    return res.status(400).json({ error: "Username, password, and role are required" });
   }
 
   try {
@@ -401,18 +391,9 @@ app.post("/api/products", async (req, res) => {
 
     // normalize fields
     const finalPrice =
-      typeof unitPrice === "number"
-        ? unitPrice
-        : typeof price === "number"
-          ? price
-          : 0;
+      typeof unitPrice === "number" ? unitPrice : typeof price === "number" ? price : 0;
 
-    const finalCost =
-      typeof unitCost === "number"
-        ? unitCost
-        : typeof cost === "number"
-          ? cost
-          : 0;
+    const finalCost = typeof unitCost === "number" ? unitCost : typeof cost === "number" ? cost : 0;
 
     const doc = await new Product({
       name,
@@ -441,8 +422,7 @@ app.put("/api/products/:id", async (req, res) => {
       { name, price, quantity },
       { new: true },
     );
-    if (!updatedProduct)
-      return res.status(404).json({ error: "Product not found" });
+    if (!updatedProduct) return res.status(404).json({ error: "Product not found" });
     res.json({
       message: "Product updated successfully",
       product: updatedProduct,
@@ -456,8 +436,7 @@ app.put("/api/products/:id", async (req, res) => {
 app.delete("/api/products/:id", async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-    if (!deletedProduct)
-      return res.status(404).json({ error: "Product not found" });
+    if (!deletedProduct) return res.status(404).json({ error: "Product not found" });
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error("[DELETE /api/products/:id] failed:", err);
@@ -563,10 +542,7 @@ app.get("/api/stats/profit-by-month", async (req, res) => {
     if (userId) match.soldBy = new mongoose.Types.ObjectId(userId);
 
     // Pull sales for that year (with product pricing as fallback)
-    const sales = await Sale.find(match).populate(
-      "product",
-      "unitPrice price unitCost",
-    );
+    const sales = await Sale.find(match).populate("product", "unitPrice price unitCost");
 
     const byMonth = Array(12).fill(0);
 
@@ -577,10 +553,7 @@ app.get("/api/stats/profit-by-month", async (req, res) => {
         typeof s.unitPrice === "number"
           ? s.unitPrice
           : (s.product?.unitPrice ?? s.product?.price ?? 0);
-      const cost =
-        typeof s.unitCost === "number"
-          ? s.unitCost
-          : (s.product?.unitCost ?? 0);
+      const cost = typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
 
       byMonth[m] += (price - cost) * qty;
     }
@@ -855,8 +828,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     const activeSellers = sellerSet.size;
     const topProduct = (() => {
       const m = new Map();
-      for (const r of rows)
-        m.set(r.product, (m.get(r.product) || 0) + (r.qty || 0));
+      for (const r of rows) m.set(r.product, (m.get(r.product) || 0) + (r.qty || 0));
       let best = "-",
         bestQty = -1;
       for (const [name, q] of m)
@@ -869,10 +841,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
 
     // ----- response headers -----
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      'attachment; filename="sales-report.pdf"',
-    );
+    res.setHeader("Content-Disposition", 'attachment; filename="sales-report.pdf"');
 
     // ----- doc -----
     const doc = new PDFDocument({ size: "A4", margin: 40 });
@@ -880,8 +849,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
 
     // ----- layout tokens -----
     const startX = doc.page.margins.left; // 40
-    const usableW =
-      doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const usableW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const tableTop = 120;
     const rowHeight = 20;
     const headerBg = "#f3f4f6";
@@ -919,11 +887,9 @@ app.get("/api/export/sales.pdf", async (req, res) => {
 
     // filters label (for header & cover pages)
     const filterBits = [];
-    if (req.query.startDate)
-      filterBits.push(`From: ${fmtDate(req.query.startDate)}`);
+    if (req.query.startDate) filterBits.push(`From: ${fmtDate(req.query.startDate)}`);
     if (req.query.endDate) filterBits.push(`To: ${fmtDate(req.query.endDate)}`);
-    if (req.query.user && req.query.user !== "All")
-      filterBits.push(`User: ${req.query.user}`);
+    if (req.query.user && req.query.user !== "All") filterBits.push(`User: ${req.query.user}`);
     const filterLine = filterBits.join("   •   ") || "All data";
 
     // ===== footer & header (safe: no negative x) =====
@@ -967,10 +933,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
 
     const drawTableHeader = (y) => {
       // header background
-      doc
-        .rect(startX, y, totalTableWidth(), rowHeight)
-        .fill(headerBg)
-        .fillColor("#111");
+      doc.rect(startX, y, totalTableWidth(), rowHeight).fill(headerBg).fillColor("#111");
 
       // header titles
       let x = startX;
@@ -994,8 +957,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
       doc.fillColor("#111");
     };
 
-    const canFit = (y, needed = rowHeight) =>
-      y + needed <= doc.page.height - 60;
+    const canFit = (y, needed = rowHeight) => y + needed <= doc.page.height - 60;
 
     // ========== PAGE 1: COVER ==========
     // simple brand mark (optional placeholder)
@@ -1018,11 +980,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
       .fillColor("#111827")
       .text("Sales Report", startX, 120, { width: usableW });
     doc.moveDown(0.5);
-    doc
-      .font("Helvetica")
-      .fontSize(12)
-      .fillColor("#374151")
-      .text(filterLine, { width: usableW });
+    doc.font("Helvetica").fontSize(12).fillColor("#374151").text(filterLine, { width: usableW });
     doc.moveDown(0.5);
     doc
       .font("Helvetica")
@@ -1061,11 +1019,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     // ========== PAGE 2: EXECUTIVE SUMMARY ==========
     const card = (x, y, title, value, sub) => {
       const cw = (usableW - 24) / 2; // 2 columns with 24px gap
-      doc
-        .save()
-        .roundedRect(x, y, cw, 88, 10)
-        .fillAndStroke("#ffffff", "#e5e7eb")
-        .restore();
+      doc.save().roundedRect(x, y, cw, 88, 10).fillAndStroke("#ffffff", "#e5e7eb").restore();
       doc
         .font("Helvetica-Bold")
         .fontSize(12)
@@ -1087,23 +1041,11 @@ app.get("/api/export/sales.pdf", async (req, res) => {
     const right = startX + (usableW + 24) / 2;
     let sy = 80;
 
-    card(
-      left,
-      sy,
-      "Total Revenue",
-      currency(totalRevenue),
-      "All included rows",
-    );
+    card(left, sy, "Total Revenue", currency(totalRevenue), "All included rows");
     card(right, sy, "Units Sold", String(unitsSold), "All included rows");
     sy += 104;
     card(left, sy, "Active Sellers", String(activeSellers), "Unique sellers");
-    card(
-      right,
-      sy,
-      "Avg Order Value",
-      currency(avgOrderValue),
-      "Revenue / orders",
-    );
+    card(right, sy, "Avg Order Value", currency(avgOrderValue), "Revenue / orders");
     sy += 104;
     card(left, sy, "Top Product", topProduct.name, `${topProduct.qty} units`);
     // You can add a sixth KPI here if you like:
@@ -1118,11 +1060,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
       .lineWidth(1)
       .stroke();
     sy += 14;
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .fillColor("#111827")
-      .text("Filters", startX, sy);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("Filters", startX, sy);
     sy += 18;
     doc
       .font("Helvetica")
@@ -1130,11 +1068,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
       .fillColor("#374151")
       .text(filterLine, startX, sy, { width: usableW });
     sy += 28;
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .fillColor("#111827")
-      .text("Notes", startX, sy);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111827").text("Notes", startX, sy);
     sy += 18;
     doc
       .font("Helvetica")
@@ -1179,10 +1113,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
 
       // zebra
       if (idx % 2 === 0) {
-        doc
-          .rect(startX, y, totalTableWidth(), rowHeight)
-          .fill(zebraColor)
-          .fillColor("#111");
+        doc.rect(startX, y, totalTableWidth(), rowHeight).fill(zebraColor).fillColor("#111");
       }
 
       // grid line
@@ -1230,11 +1161,7 @@ app.get("/api/export/sales.pdf", async (req, res) => {
       y = tableTop;
     }
 
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .fillColor("#111")
-      .text("Summary", startX, y);
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#111").text("Summary", startX, y);
     y += 10;
     doc.font("Helvetica").fontSize(11).fillColor("#111");
     doc.text(`Total Units: ${totalUnits}`, startX, y);
@@ -1256,11 +1183,7 @@ app.get("/api/users", async (req, res) => {
 // Change role
 app.put("/api/users/:id/role", async (req, res) => {
   const { role } = req.body;
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { role },
-    { new: true },
-  );
+  const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
   res.json(user);
 });
 
@@ -1274,11 +1197,7 @@ app.put("/api/user/:id", async (req, res) => {
   const { email, preferences } = req.body;
 
   try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { email, preferences },
-      { new: true },
-    );
+    const user = await User.findByIdAndUpdate(req.params.id, { email, preferences }, { new: true });
     res.json({ message: "Profile updated", user });
   } catch (err) {
     console.error("❌ Failed to update user:", err);
@@ -1294,8 +1213,7 @@ app.put("/api/user/:id/password", async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch)
-      return res.status(400).json({ error: "Incorrect current password" });
+    if (!isMatch) return res.status(400).json({ error: "Incorrect current password" });
 
     const hashed = await bcrypt.hash(newPassword, 10);
     user.password = hashed;
@@ -1315,9 +1233,7 @@ app.post("/api/sales", async (req, res) => {
 
     // 1) Validate inputs
     if (!productId || !quantity) {
-      return res
-        .status(400)
-        .json({ error: "productId and quantity are required" });
+      return res.status(400).json({ error: "productId and quantity are required" });
     }
     if (!soldBy) {
       return res.status(400).json({ error: "soldBy (user id) is required" });
@@ -1384,8 +1300,7 @@ app.post("/api/sales", async (req, res) => {
 app.delete("/api/notifications/:id", async (req, res) => {
   try {
     const deleted = await Notification.findByIdAndDelete(req.params.id);
-    if (!deleted)
-      return res.status(404).json({ error: "Notification not found" });
+    if (!deleted) return res.status(404).json({ error: "Notification not found" });
     res.json({ message: "Deleted" });
   } catch (err) {
     console.error("❌ Error deleting notification:", err);
@@ -1422,10 +1337,7 @@ app.get("/api/search", async (req, res) => {
     const rx = new RegExp(escapeRegExp(qRaw), "i");
 
     // 1) Products (by name)
-    const products = await Product.find({ name: rx })
-      .select("_id name")
-      .limit(limit)
-      .lean();
+    const products = await Product.find({ name: rx }).select("_id name").limit(limit).lean();
 
     // 2) Users (by username OR email)
     const users = await User.find({ $or: [{ username: rx }, { email: rx }] })
@@ -1627,9 +1539,7 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
       CRON_EXPR,
       async () => {
         try {
-          console.log(
-            `[summary] Running scheduled job @ ${new Date().toLocaleString()}`,
-          );
+          console.log(`[summary] Running scheduled job @ ${new Date().toLocaleString()}`);
           const result = await sendDailySummaryNow(); // <-- your existing function
           console.log("[summary] Sent to Discord:", result);
         } catch (err) {
@@ -1640,9 +1550,7 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
     );
 
     global.__SUMMARY_JOB_STARTED__ = true;
-    console.log(
-      `[summary] Scheduler ready. CRON="${CRON_EXPR}" TZ="${TIMEZONE}"`,
-    );
+    console.log(`[summary] Scheduler ready. CRON="${CRON_EXPR}" TZ="${TIMEZONE}"`);
   } catch (e) {
     console.error("[summary] Failed to start scheduler:", e);
   }
@@ -1684,10 +1592,7 @@ async function composeDailySummary() {
 
   const orders = sales.length;
   const units = sales.reduce((a, s) => a + (s.quantity || 0), 0);
-  const revenue = sales.reduce(
-    (a, s) => a + (s.quantity || 0) * (s.product?.price || 0),
-    0,
-  );
+  const revenue = sales.reduce((a, s) => a + (s.quantity || 0) * (s.product?.price || 0), 0);
 
   // top product by units
   const byProduct = {};
@@ -1695,9 +1600,7 @@ async function composeDailySummary() {
     const key = s.product?.name || "-";
     byProduct[key] = (byProduct[key] || 0) + (s.quantity || 0);
   }
-  const topProductEntry = Object.entries(byProduct).sort(
-    (a, b) => b[1] - a[1],
-  )[0];
+  const topProductEntry = Object.entries(byProduct).sort((a, b) => b[1] - a[1])[0];
   const topProduct = topProductEntry
     ? { name: topProductEntry[0], units: topProductEntry[1] }
     : null;
@@ -1706,15 +1609,10 @@ async function composeDailySummary() {
   const bySeller = {};
   for (const s of sales) {
     const key = s.soldBy?.username || "-";
-    bySeller[key] =
-      (bySeller[key] || 0) + (s.quantity || 0) * (s.product?.price || 0);
+    bySeller[key] = (bySeller[key] || 0) + (s.quantity || 0) * (s.product?.price || 0);
   }
-  const topSellerEntry = Object.entries(bySeller).sort(
-    (a, b) => b[1] - a[1],
-  )[0];
-  const topSeller = topSellerEntry
-    ? { user: topSellerEntry[0], revenue: topSellerEntry[1] }
-    : null;
+  const topSellerEntry = Object.entries(bySeller).sort((a, b) => b[1] - a[1])[0];
+  const topSeller = topSellerEntry ? { user: topSellerEntry[0], revenue: topSellerEntry[1] } : null;
 
   const lowStockCount = await Product.countDocuments({
     quantity: { $lt: LOW_STOCK_THRESHOLD },
@@ -1850,9 +1748,7 @@ const toMoney = (n) => Number(n || 0).toFixed(2);
 app.post("/api/admin/summary/send-now", async (req, res) => {
   try {
     if (!process.env.DISCORD_WEBHOOK_URL) {
-      return res
-        .status(500)
-        .json({ error: "Missing DISCORD_WEBHOOK_URL in .env" });
+      return res.status(500).json({ error: "Missing DISCORD_WEBHOOK_URL in .env" });
     }
 
     const summary = await sendDailySummaryNow();
@@ -1947,9 +1843,7 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
       CRON_EXPR,
       async () => {
         try {
-          console.log(
-            `[summary] Running scheduled job @ ${new Date().toLocaleString()}`,
-          );
+          console.log(`[summary] Running scheduled job @ ${new Date().toLocaleString()}`);
           const result = await sendDailySummaryNow(); // <-- your existing function
           console.log("[summary] Sent to Discord:", result);
         } catch (err) {
@@ -1960,9 +1854,7 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
     );
 
     global.__SUMMARY_JOB_STARTED__ = true;
-    console.log(
-      `[summary] Scheduler ready. CRON="${CRON_EXPR}" TZ="${TIMEZONE}"`,
-    );
+    console.log(`[summary] Scheduler ready. CRON="${CRON_EXPR}" TZ="${TIMEZONE}"`);
   } catch (e) {
     console.error("[summary] Failed to start scheduler:", e);
   }
@@ -1978,9 +1870,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.post("/api/products/import", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: "No file uploaded. Use field name 'file'." });
+      return res.status(400).json({ error: "No file uploaded. Use field name 'file'." });
     }
 
     // Parse CSV from buffer
@@ -1995,9 +1885,7 @@ app.post("/api/products/import", upload.single("file"), async (req, res) => {
     const required = ["sku", "name"];
     const missingHeaders = required.filter((h) => !(h in rows[0] || {}));
     if (missingHeaders.length) {
-      return res
-        .status(400)
-        .json({ error: `Missing header(s): ${missingHeaders.join(", ")}` });
+      return res.status(400).json({ error: `Missing header(s): ${missingHeaders.join(", ")}` });
     }
 
     const report = {
@@ -2035,9 +1923,7 @@ app.post("/api/products/import", upload.single("file"), async (req, res) => {
           existing.price = isNaN(price) ? existing.price : price;
           existing.cost = isNaN(cost) ? existing.cost : cost;
           existing.quantity = isNaN(qty) ? existing.quantity : qty;
-          existing.reorderLevel = isNaN(reorderLevel)
-            ? existing.reorderLevel
-            : reorderLevel;
+          existing.reorderLevel = isNaN(reorderLevel) ? existing.reorderLevel : reorderLevel;
           await existing.save();
           report.updated++;
         } else {

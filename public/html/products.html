@@ -34,11 +34,7 @@
         <button id="upload-image-btn" type="button">Upload Image</button>
 
         <div style="margin-top: 8px">
-          <img
-            id="product-image-preview"
-            alt="Preview"
-            style="max-width: 180px; display: none"
-          />
+          <img id="product-image-preview" alt="Preview" style="max-width: 180px; display: none" />
         </div>
 
         <p id="uploadMsg" style="color: green"></p>
@@ -71,27 +67,21 @@
     <script src="../js/products.js" defer></script>
 
     <script>
-      document
-        .getElementById("importForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const f = document.getElementById("csvFile").files[0];
-          if (!f) return;
+      document.getElementById("importForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = document.getElementById("csvFile").files[0];
+        if (!f) return;
 
-          const fd = new FormData();
-          fd.append("file", f);
+        const fd = new FormData();
+        fd.append("file", f);
 
-          const res = await fetch("/api/products/import", {
-            method: "POST",
-            body: fd,
-          });
-          const json = await res.json();
-          document.getElementById("importResult").textContent = JSON.stringify(
-            json,
-            null,
-            2,
-          );
+        const res = await fetch("/api/products/import", {
+          method: "POST",
+          body: fd,
         });
+        const json = await res.json();
+        document.getElementById("importResult").textContent = JSON.stringify(json, null, 2);
+      });
     </script>
   </body>
 </html>

@@ -3,20 +3,7 @@
 // ===============================
 
 // Helper: month labels
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // Elements (guarded lookups)
 const notAdmin = document.getElementById("notAdmin");
@@ -52,8 +39,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const userRes = await fetch(`/api/user/${uid}`);
   const { user } = await userRes.json();
-  if (!user || user.role !== "admin")
-    return fail("❌ Access denied. Admins only.");
+  if (!user || user.role !== "admin") return fail("❌ Access denied. Admins only.");
 
   // Populate years (current ± 2) if control exists
   if (yearSelect) {
@@ -132,9 +118,7 @@ async function refresh() {
     "bar",
     {
       labels: labelsU,
-      datasets: [
-        { label: "Units", data: dataU, backgroundColor: "rgba(34,197,94,.8)" },
-      ],
+      datasets: [{ label: "Units", data: dataU, backgroundColor: "rgba(34,197,94,.8)" }],
     },
     { scales: { y: { beginAtZero: true } } },
   );
@@ -174,14 +158,7 @@ async function refresh() {
   // 6) Top products by profit (this month)
   const now = new Date();
   const startISO = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const endISO = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-  ).toISOString();
+  const endISO = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
   await topProductsByProfit(5, startISO, endISO);
 
   // 7) KPIs (now includes profit & margin if targets exist)
@@ -233,8 +210,7 @@ async function profitByMonthClient(year, userId) {
       typeof s.unitPrice === "number"
         ? s.unitPrice
         : (s.product?.unitPrice ?? s.product?.price ?? 0);
-    const cost =
-      typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
+    const cost = typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
     profitByMonth[m] += (price - cost) * qty;
   });
   return profitByMonth.map((v) => Math.round(v * 100) / 100);
@@ -258,12 +234,9 @@ async function renderTopProducts() {
 
   const valueKey = metric === "revenue" ? "totalRevenue" : "totalSold";
   const valueFmt = metric === "revenue" ? (v) => currency(v) : (v) => String(v);
-  const title =
-    metric === "revenue" ? "Top Products by Revenue" : "Top Products by Units";
+  const title = metric === "revenue" ? "Top Products by Revenue" : "Top Products by Units";
 
-  const sorted = [...withRevenue].sort(
-    (a, b) => (b[valueKey] || 0) - (a[valueKey] || 0),
-  );
+  const sorted = [...withRevenue].sort((a, b) => (b[valueKey] || 0) - (a[valueKey] || 0));
   const top = sorted.slice(0, topN);
   const rest = sorted.slice(topN);
   const otherSum = rest.reduce((s, r) => s + Number(r[valueKey] || 0), 0);
@@ -315,9 +288,7 @@ async function renderTopProducts() {
       type: "bar",
       data: {
         labels,
-        datasets: [
-          { label: metric, data, backgroundColor: colors, borderRadius: 8 },
-        ],
+        datasets: [{ label: metric, data, backgroundColor: colors, borderRadius: 8 }],
       },
       options: {
         ...commonOpts,
@@ -339,9 +310,7 @@ async function renderTopProducts() {
       type: "doughnut",
       data: {
         labels,
-        datasets: [
-          { data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 },
-        ],
+        datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }],
       },
       options: { ...commonOpts, cutout: "58%" },
     });
@@ -365,9 +334,7 @@ async function addRevenueIfMissing(list) {
 
   const prodRes = await fetch("/api/products");
   const products = await prodRes.json(); // [{_id, name, price or unitPrice}]
-  const priceByName = new Map(
-    products.map((p) => [p.name, Number(p.unitPrice ?? p.price ?? 0)]),
-  );
+  const priceByName = new Map(products.map((p) => [p.name, Number(p.unitPrice ?? p.price ?? 0)]));
 
   return list.map((p) => ({
     ...p,
@@ -408,15 +375,11 @@ async function renderLowStock(products, opts = {}) {
     reorder: Number(p.reorderLevel ?? threshold),
   }));
 
-  const filtered = onlyBelow
-    ? rows.filter((r) => r.qty < (r.reorder || threshold))
-    : rows;
+  const filtered = onlyBelow ? rows.filter((r) => r.qty < (r.reorder || threshold)) : rows;
   filtered.sort((a, b) => a.qty - b.qty);
 
   const data = filtered.slice(0, topN);
-  const labels = data.map((r) =>
-    r.name.length > 24 ? r.name.slice(0, 23) + "…" : r.name,
-  );
+  const labels = data.map((r) => (r.name.length > 24 ? r.name.slice(0, 23) + "…" : r.name));
   const qtys = data.map((r) => r.qty);
   const colors = data.map((r) => {
     const th = r.reorder || threshold;
@@ -503,18 +466,9 @@ async function renderLowStock(products, opts = {}) {
 async function updateKPIs(products) {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const end = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-  ).toISOString();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  const sales = await (
-    await fetch(`/api/sales?startDate=${start}&endDate=${end}`)
-  ).json();
+  const sales = await (await fetch(`/api/sales?startDate=${start}&endDate=${end}`)).json();
 
   let revenue = 0,
     cost = 0,
@@ -527,8 +481,7 @@ async function updateKPIs(products) {
       typeof s.unitPrice === "number"
         ? s.unitPrice
         : (s.product?.unitPrice ?? s.product?.price ?? 0);
-    const cst =
-      typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
+    const cst = typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
     revenue += price * qty;
     cost += cst * qty;
     units += qty;
@@ -541,8 +494,7 @@ async function updateKPIs(products) {
   if (kpiRevenue) kpiRevenue.textContent = fmtCurrency(revenue);
   if (kpiUnits) kpiUnits.textContent = units;
   if (kpiSellers) kpiSellers.textContent = sellerSet.size;
-  if (kpiLowStock)
-    kpiLowStock.textContent = products.filter((p) => p.quantity < 5).length;
+  if (kpiLowStock) kpiLowStock.textContent = products.filter((p) => p.quantity < 5).length;
 
   // Optional: add elements with these IDs to show them
   const kpiProfit = document.getElementById("kpiProfit");
@@ -568,15 +520,12 @@ async function topProductsByProfit(limit = 5, startISO, endISO) {
       typeof s.unitPrice === "number"
         ? s.unitPrice
         : (s.product?.unitPrice ?? s.product?.price ?? 0);
-    const cost =
-      typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
+    const cost = typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
     const name = s.product?.name ?? "(unknown)";
     profitMap.set(name, (profitMap.get(name) || 0) + (price - cost) * qty);
   });
 
-  const top = [...profitMap.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit);
+  const top = [...profitMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit);
   const labels = top.map(([n]) => n);
   const data = top.map(([, p]) => Math.round(p * 100) / 100);
 
@@ -585,9 +534,7 @@ async function topProductsByProfit(limit = 5, startISO, endISO) {
     "bar",
     {
       labels,
-      datasets: [
-        { label: "Profit", data, backgroundColor: "#34d399", borderRadius: 8 },
-      ],
+      datasets: [{ label: "Profit", data, backgroundColor: "#34d399", borderRadius: 8 }],
     },
     {
       indexAxis: "y",

@@ -62,9 +62,7 @@
       </div>
     </div>
 
-    <button onclick="sessionStorage.clear(); location.href='/html/login.html'">
-      Logout
-    </button>
+    <button onclick="sessionStorage.clear(); location.href='/html/login.html'">Logout</button>
 
     <div class="notif-wrapper">
       <button id="notifBtn" class="notif-btn">🔔</button>
@@ -77,24 +75,9 @@
 
       <div class="export-actions">
         <!-- primary one-click buttons -->
-        <a
-          href="/api/export/sales.csv"
-          class="btn btn-export"
-          data-variant="csv"
-          >CSV</a
-        >
-        <a
-          href="/api/export/sales.xlsx"
-          class="btn btn-export"
-          data-variant="xlsx"
-          >Excel</a
-        >
-        <a
-          href="/api/export/sales.pdf"
-          class="btn btn-export"
-          data-variant="pdf"
-          >PDF</a
-        >
+        <a href="/api/export/sales.csv" class="btn btn-export" data-variant="csv">CSV</a>
+        <a href="/api/export/sales.xlsx" class="btn btn-export" data-variant="xlsx">Excel</a>
+        <a href="/api/export/sales.pdf" class="btn btn-export" data-variant="pdf">PDF</a>
 
         <!-- dropdown for more actions -->
         <div class="export-menu">
@@ -106,9 +89,7 @@
             <a href="/api/export/sales.xlsx">Download Excel</a>
             <a href="/api/export/sales.pdf">Download PDF</a>
             <hr />
-            <button class="menu-action" id="sendReportBtn">
-              ✉️ Email Daily Report
-            </button>
+            <button class="menu-action" id="sendReportBtn">✉️ Email Daily Report</button>
           </div>
         </div>
       </div>
