@@ -1265,11 +1265,9 @@ app.post("/api/sales", async (req, res) => {
       const p = pmap.get(l.productId);
       if (!p) return res.status(404).json({ error: `Product not found (${l.productId})` });
       if (p.quantity < l.quantity)
-        return res
-          .status(400)
-          .json({
-            error: `Not enough stock for ${p.name} (have ${p.quantity}, need ${l.quantity})`,
-          });
+        return res.status(400).json({
+          error: `Not enough stock for ${p.name} (have ${p.quantity}, need ${l.quantity})`,
+        });
     }
 
     // Decrement stock atomically per line (no replica set required)

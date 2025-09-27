@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  api:
+    build: . # build from your local Dockerfile
+    container_name: inventory-api-dev
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/inventory
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app # mount your entire project for live reload
+      - /app/node_modules # prevent overwriting node_modules
+      - ./public/uploads:/app/public/uploads
+    command: npx nodemon server.js # run nodemon for auto-reload
+
+  mongo:
+    image: mongo:7
+    container_name: inventory-mongo-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
