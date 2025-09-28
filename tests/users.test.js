@@ -15,7 +15,7 @@ afterAll(async () => {
 
 describe("Users", () => {
   test("registers a user (201) and lists users", async () => {
-    const reg = await request(app)
+    await request(app)
       .post("/api/register")
       .send({ username: "alice", password: "pass123", role: "sales" })
       .expect(201);

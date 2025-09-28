@@ -30,17 +30,14 @@ describe("Products CRUD", () => {
     await request(app).delete(`/api/products/${productId}`).expect(200);
 
     const listAfter = await request(app).get("/api/products").expect(200);
-    const namesAfter = (Array.isArray(listAfter.body) ? listAfter.body : listAfter.body.products).map(
-      (p) => p.name,
-    );
+    const namesAfter = (
+      Array.isArray(listAfter.body) ? listAfter.body : listAfter.body.products
+    ).map((p) => p.name);
     expect(namesAfter).not.toContain("Widget");
   });
 
   test("create fails with missing name (400)", async () => {
-    const bad = await request(app)
-      .post("/api/products")
-      .send({ price: 10 })
-      .expect(400);
+    const bad = await request(app).post("/api/products").send({ price: 10 }).expect(400);
     expect(bad.body.error).toMatch(/name/i);
   });
 
