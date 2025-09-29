@@ -87,7 +87,7 @@ router.get("/sales.xlsx", async (req, res) => {
 });
 
 // Export PDF
-router.get("/sales.pdf", async (req, res) => {
+router.get("/sales.pdf", async (_req, _res) => {
   // Your existing PDF export logic from server.js
   // (Too long to include here, but move the entire function)
 });

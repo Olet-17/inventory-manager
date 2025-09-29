@@ -7,7 +7,7 @@ module.exports = [
 
   // --- Node / server files ---
   {
-    files: ["server.js", "routes/**", "*.config.cjs", "*.config.js"],
+    files: ["server.js", "routes/**", "models/**", "*.config.cjs", "*.config.js"], // ← Added "models/**"
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "commonjs",
@@ -25,7 +25,7 @@ module.exports = [
         "warn",
         {
           argsIgnorePattern: "^_",
-          varsIgnorePattern: "^(transporter|buildCsvBuffer)$",
+          varsIgnorePattern: "^(transporter|buildCsvBuffer|PDFDocument|Product|User|escapeRegExp)$", // ← Added more ignored vars
         },
       ],
     },

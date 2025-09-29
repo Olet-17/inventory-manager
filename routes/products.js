@@ -48,9 +48,9 @@ router.post("/", async (req, res) => {
     console.error("[POST /api/products] failed:", err);
     
     // More specific error handling
-    if (err.name === 'ValidationError') {
+    if (err.name === "ValidationError") {
       const errors = Object.values(err.errors).map(e => e.message);
-      return res.status(400).json({ error: errors.join(', ') });
+      return res.status(400).json({ error: errors.join(", ") });
     }
     
     // Handle duplicate SKU errors
@@ -87,9 +87,9 @@ router.put("/:id", async (req, res) => {
     console.error("[PUT /api/products/:id] failed:", err);
     
     // Handle validation errors for updates too
-    if (err.name === 'ValidationError') {
+    if (err.name === "ValidationError") {
       const errors = Object.values(err.errors).map(e => e.message);
-      return res.status(400).json({ error: errors.join(', ') });
+      return res.status(400).json({ error: errors.join(", ") });
     }
     
     res.status(500).json({ error: "Failed to update product" });

@@ -25,27 +25,27 @@ const Product = require("./models/Product");
 const User = require("./models/User");
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const productRoutes = require('./routes/products');
-const saleRoutes = require('./routes/sales');
-const userRoutes = require('./routes/users');
-const notificationRoutes = require('./routes/notifications');
-const statsRoutes = require('./routes/stats');
-const exportRoutes = require('./routes/export');
-const uploadRoutes = require('./routes/upload');
+const authRoutes = require("./routes/auth");
+const productRoutes = require("./routes/products");
+const saleRoutes = require("./routes/sales");
+const userRoutes = require("./routes/users");
+const notificationRoutes = require("./routes/notifications");
+const statsRoutes = require("./routes/stats");
+const exportRoutes = require("./routes/export");
+const uploadRoutes = require("./routes/upload");
 
 // Use routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/sales', saleRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/stats', statsRoutes);
-app.use('/api/export', exportRoutes);
-app.use('/api/upload', uploadRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/sales", saleRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/stats", statsRoutes);
+app.use("/api/export", exportRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Search route
-app.get("/api/search", require('./routes/search'));
+app.get("/api/search", require("./routes/search"));
 
 // Helper functions for daily summaries
 const toMoney = (n) => Number(n || 0).toFixed(2);
