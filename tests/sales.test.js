@@ -15,9 +15,9 @@ afterAll(async () => {
 });
 
 test("POST /api/sales creates a sale", async () => {
-  // 1) Register user
+  // 1) Register user - ✅ FIXED: Use correct auth endpoint
   await request(app)
-    .post("/api/register")
+    .post("/api/auth/register")
     .send({ username: "testuser", password: "testpass", role: "sales" })
     .expect(201);
 

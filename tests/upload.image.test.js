@@ -33,7 +33,7 @@ describe("Product image upload", () => {
 
     const imgPath = getTempPngPath();
     const res = await request(app)
-      .post(`/api/products/${productId}/image`)
+      .post(`/api/upload/products/${productId}/image`) // ✅ FIXED: Use correct upload endpoint
       .attach("image", imgPath) // field name must be "image"
       .expect(200);
 

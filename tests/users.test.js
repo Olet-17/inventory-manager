@@ -15,8 +15,9 @@ afterAll(async () => {
 
 describe("Users", () => {
   test("registers a user (201) and lists users", async () => {
+    // ✅ FIXED: Use correct auth endpoint
     await request(app)
-      .post("/api/register")
+      .post("/api/auth/register")
       .send({ username: "alice", password: "pass123", role: "sales" })
       .expect(201);
 
@@ -27,13 +28,14 @@ describe("Users", () => {
   });
 
   test("rejects duplicate username (400)", async () => {
+    // ✅ FIXED: Use correct auth endpoint
     await request(app)
-      .post("/api/register")
+      .post("/api/auth/register")
       .send({ username: "bob", password: "x", role: "sales" })
       .expect(201);
 
     const dup = await request(app)
-      .post("/api/register")
+      .post("/api/auth/register") // ✅ FIXED: Use correct auth endpoint
       .send({ username: "bob", password: "y", role: "sales" })
       .expect(400);
 
@@ -41,7 +43,8 @@ describe("Users", () => {
   });
 
   test("rejects missing fields (400)", async () => {
-    const bad = await request(app).post("/api/register").send({}).expect(400);
+    // ✅ FIXED: Use correct auth endpoint
+    const bad = await request(app).post("/api/auth/register").send({}).expect(400);
     expect(bad.body.error).toBeTruthy();
   });
 });

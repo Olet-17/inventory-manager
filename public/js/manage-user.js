@@ -1,15 +1,29 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  if (!user || user.role !== "admin") {
-    document.getElementById("notAllowed").style.display = "block";
+  // ✅ FIXED: Check authentication using userId from localStorage
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    window.location.href = "/html/login.html";
     return;
   }
 
-  const table = document.getElementById("userTable");
-  const tbody = table.querySelector("tbody");
-
   try {
+    // ✅ FIXED: Fetch user data using the new auth endpoint
+    const userRes = await fetch('/api/auth/me', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ id: userId })
+    });
+    
+    const userData = await userRes.json();
+    
+    if (!userData || userData.role !== "admin") {
+      document.getElementById("notAllowed").style.display = "block";
+      return;
+    }
+
+    const table = document.getElementById("userTable");
+    const tbody = table.querySelector("tbody");
+
     const res = await fetch("/api/users");
     const users = await res.json();
 
@@ -32,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   } catch (err) {
     console.error("Load error:", err);
+    document.getElementById("notAllowed").style.display = "block";
   }
 });
 

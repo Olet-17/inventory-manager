@@ -1,72 +1,93 @@
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ Dashboard script loaded");
+  console.log("🔍 DEBUG: Dashboard script loaded");
+  
+  // Debug all storage
+  console.log("📦 sessionStorage contents:");
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    console.log("  ", key + " = " + sessionStorage.getItem(key));
+  }
+  
+  console.log("📦 localStorage contents:");
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    console.log("  ", key + " = " + localStorage.getItem(key));
+  }
 
-  const rawUser = localStorage.getItem("user");
-  console.log("📦 Raw user:", rawUser);
+  // ✅ FIXED: Look for userId in localStorage instead of sessionStorage
+  const userId = localStorage.getItem("userId");
+  console.log("🎯 Retrieved userId from localStorage:", userId);
 
-  if (!rawUser) {
-    console.warn("❌ No user found. Redirecting to login...");
+  if (!userId) {
+    console.error("❌ DEBUG: No userId found in localStorage!");
+    console.error("❌ Redirecting to login...");
     window.location.href = "/html/login.html";
     return;
   }
 
-  const user = JSON.parse(rawUser);
-  console.log("✅ Parsed user:", user);
-
-  const roleElement = document.getElementById("userRole");
-  if (roleElement) {
-    roleElement.textContent = user.role;
-  }
-
-  if (user.role === "admin") {
-    document.getElementById("adminPanel")?.classList.remove("hidden");
-  } else {
-    document.getElementById("salesPanel")?.classList.remove("hidden");
-  }
+  console.log("✅ DEBUG: UserId found, proceeding to fetch user data");
+  fetchUserData(userId);
 });
 
-//  document.getElementById("notifBtn").addEventListener("click", async () => {
-//     const dropdown = document.getElementById("notifDropdown");
-//     dropdown.classList.toggle("hidden");
+async function fetchUserData(userId) {
+  try {
+    console.log("🔍 DEBUG: Fetching user data for ID:", userId);
+    
+    const res = await fetch('/api/auth/me', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: userId })
+    });
+    
+    console.log("🔍 DEBUG: API Response status:", res.status);
+    
+    const data = await res.json();
+    console.log("🔍 DEBUG: User API response data:", data);
+    
+    if (res.ok && data.id) {
+      console.log("✅ DEBUG: User data successfully loaded");
+      const user = data;
 
-//     if (!dropdown.classList.contains("hidden")) {
-//       try {
-//         const res = await fetch("/api/notifications");
-//         const data = await res.json();
+      const roleElement = document.getElementById("userRole");
+      if (roleElement) {
+        roleElement.textContent = user.role;
+        console.log("✅ DEBUG: User role set to:", user.role);
+      }
 
-//         dropdown.innerHTML = "";
+      if (user.role === "admin") {
+        document.getElementById("adminPanel")?.classList.remove("hidden");
+        console.log("✅ DEBUG: Admin panel shown");
+      } else {
+        document.getElementById("salesPanel")?.classList.remove("hidden");
+        console.log("✅ DEBUG: Sales panel shown");
+      }
+      
+      console.log("✅ DEBUG: Dashboard fully loaded!");
+    } else {
+      console.error("❌ DEBUG: API returned error:", data.error);
+      window.location.href = "/html/login.html";
+    }
+  } catch (error) {
+    console.error("❌ DEBUG: Error fetching user data:", error);
+    window.location.href = "/html/login.html";
+  }
+}
 
-//         if (data.length === 0) {
-//           dropdown.innerHTML = "<p>No notifications</p>";
-//           return;
-//         }
-
-//         data.forEach(notif => {
-//           const p = document.createElement("p");
-//           p.textContent = notif.message;
-//           dropdown.appendChild(p);
-//         });
-
-//       } catch (err) {
-//         dropdown.innerHTML = "<p>Failed to load notifications</p>";
-//       }
-//     }
-//   });
-
+// Rest of your notification code remains the same
 const bell = document.getElementById("notifBtn");
 const dropdown = document.getElementById("notifDropdown");
-dropdown.classList.remove("hidden"); // once on load
-
-// Ensure the old box (if present) is hidden and unused
-const legacyBox = document.getElementById("notificationBox");
-if (legacyBox) legacyBox.style.display = "none";
+if (dropdown) dropdown.classList.remove("hidden");
 
 function openDropdown() {
   dropdown.classList.add("show");
 }
+
 function closeDropdown() {
   dropdown.classList.remove("show");
 }
+
 function toggleDropdown() {
   if (dropdown.classList.contains("show")) closeDropdown();
   else {
@@ -75,13 +96,17 @@ function toggleDropdown() {
   }
 }
 
-bell.addEventListener("click", (e) => {
-  e.stopPropagation();
-  toggleDropdown();
-});
+if (bell) {
+  bell.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleDropdown();
+  });
+}
+
 document.addEventListener("click", (e) => {
   if (!dropdown.contains(e.target) && e.target !== bell) closeDropdown();
 });
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeDropdown();
 });
@@ -91,92 +116,37 @@ async function renderNotifications() {
     const res = await fetch("/api/notifications");
     const list = await res.json();
 
-    dropdown.innerHTML =
-      Array.isArray(list) && list.length
-        ? list
-            .map(
-              (n) => `
-            <div class="notification-item" style="display:flex;gap:8px;align-items:flex-start;padding:6px 2px;border-bottom:1px solid var(--border);">
-              <span>🔔</span>
-              <div class="notification-message" style="flex:1">${n.message}</div>
-              <button class="notification-delete" data-id="${n._id}"
-                style="background:transparent;border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:2px 6px;color:#ef4444">
-                🗑️
-              </button>
-            </div>
-          `,
-            )
-            .join("")
-        : `<p><em>No notifications</em></p>`;
+    if (dropdown) {
+      dropdown.innerHTML =
+        Array.isArray(list) && list.length
+          ? list
+              .map(
+                (n) => `
+              <div class="notification-item" style="display:flex;gap:8px;align-items:flex-start;padding:6px 2px;border-bottom:1px solid var(--border);">
+                <span>🔔</span>
+                <div class="notification-message" style="flex:1">${n.message}</div>
+                <button class="notification-delete" data-id="${n._id}"
+                  style="background:transparent;border:1px solid rgba(239,68,68,.35);border-radius:8px;padding:2px 6px;color:#ef4444">
+                  🗑️
+                </button>
+              </div>
+            `,
+              )
+              .join("")
+          : `<p><em>No notifications</em></p>`;
+    }
   } catch {
-    dropdown.innerHTML = `<p style="color:#ef4444">⚠️ Failed to load</p>`;
+    if (dropdown) dropdown.innerHTML = `<p style="color:#ef4444">⚠️ Failed to load</p>`;
   }
 }
 
-dropdown.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".notification-delete");
-  if (!btn) return;
-  try {
-    await fetch(`/api/notifications/${btn.dataset.id}`, { method: "DELETE" });
-    renderNotifications();
-  } catch {}
-});
-
-//   // js/globalSearch.js
-// document.addEventListener("DOMContentLoaded", () => {
-//   const searchInput = document.getElementById("globalSearch");
-
-//   if (searchInput) {
-//     searchInput.addEventListener("keypress", async (e) => {
-//       if (e.key === "Enter") {
-//         const query = searchInput.value.trim();
-//         if (!query) return;
-
-//         // Example: Send to backend API
-//         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-//         const results = await res.json();
-
-//         // For now, just log results (later we can build a results page or dropdown)
-//         console.log("Search results:", results);
-//       }
-//     });
-//   }
-// });
-// const data = [
-//   { type: "page", name: "Manage Products", link: "products.html" },
-//   { type: "page", name: "View Sales", link: "sales.html" },
-//   { type: "page", name: "Manage Users", link: "users.html" },
-//   { type: "page", name: "Analytics", link: "analytics.html" }
-// ];
-
-// const input = document.getElementById("globalSearch");
-// const resultsBox = document.getElementById("searchResults");
-
-// input.addEventListener("input", () => {
-//   const query = input.value.toLowerCase();
-//   resultsBox.innerHTML = "";
-
-//   if (!query) {
-//     resultsBox.style.display = "none";
-//     return;
-//   }
-
-//   const results = data.filter(item => item.name.toLowerCase().includes(query));
-
-//   if (results.length === 0) {
-//     resultsBox.innerHTML = `<div class="sr-item">No results found</div>`;
-//   } else {
-//     results.forEach(item => {
-//       const div = document.createElement("a");
-//       div.href = item.link;
-//       div.className = "sr-item";
-//       div.innerHTML = `
-//         <span class="sr-type">${item.type}</span>
-//         <span class="sr-name">${item.name}</span>
-//       `;
-//       resultsBox.appendChild(div);
-//     });
-//   }
-
-//   resultsBox.style.display = "block";
-// });
+if (dropdown) {
+  dropdown.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".notification-delete");
+    if (!btn) return;
+    try {
+      await fetch(`/api/notifications/${btn.dataset.id}`, { method: "DELETE" });
+      renderNotifications();
+    } catch {}
+  });
+}

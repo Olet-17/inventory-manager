@@ -1,143 +1,86 @@
-// // routes/search.js
-// const express = require("express");
-// const router = express.Router();
+const express = require("express");
+const Product = require("../models/Product");
+const User = require("../models/User");
+const Sale = require("../models/Sale");
+const router = express.Router();
 
-// // Adjust paths to your actual models:
-// const Product = require("../models/Product");
-// const User    = require("../models/User");
-// const Sale    = require("../models/Sale");
+function escapeRegExp(s = "") {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
-// // Small helper to safely build a regex from user input
-// function escapeRegExp(s = "") {
-//   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-// }
+router.get("/", async (req, res) => {
+  try {
+    const q = (req.query.q || "").trim();
+    const limit = Math.min(parseInt(req.query.limit || 10, 10), 50);
+    if (!q) return res.json([]);
 
-// router.get("/search", async (req, res) => {
-//   try {
-//     const qRaw   = (req.query.q || "").trim();
-//     const typesQ = (req.query.types || "products,users,sales")
-//       .split(",")
-//       .map(t => t.trim().toLowerCase());
-//     const limit  = Math.min(parseInt(req.query.limit || "5", 10), 20); // cap at 20
+    const useText = q.split(/\s+/).length > 1;
 
-//     if (qRaw.length < 2) {
-//       return res.json({ results: [] });
-//     }
+    // PRODUCTS
+    const productFilter = useText
+      ? { $text: { $search: q } }
+      : { name: { $regex: q, $options: "i" } };
 
-//     const rx = new RegExp(escapeRegExp(qRaw), "i");
+    const products = await Product.find(productFilter)
+      .limit(limit)
+      .select("name price quantity")
+      .lean();
 
-//     const wantProducts = typesQ.includes("products");
-//     const wantUsers    = typesQ.includes("users");
-//     const wantSales    = typesQ.includes("sales");
+    // USERS
+    const userFilter = useText
+      ? { $text: { $search: q } }
+      : {
+          $or: [
+            { username: { $regex: q, $options: "i" } },
+            { email: { $regex: q, $options: "i" } },
+          ],
+        };
 
-//     const tasks = [];
+    const users = await User.find(userFilter).limit(limit).select("username email role").lean();
 
-//     // PRODUCTS: search by name (expand fields if you have category/sku, etc.)
-//     if (wantProducts) {
-//       tasks.push(
-//         Product.find({ name: rx })
-//           .select("_id name")
-//           .limit(limit)
-//           .lean()
-//           .then(rows =>
-//             rows.map(p => ({
-//               type: "Products",
-//               name: p.name,
-//               link: `/html/products.html?id=${p._id}`,
-//             }))
-//           )
-//       );
-//     } else {
-//       tasks.push(Promise.resolve([]));
-//     }
+    // SALES
+    const sales = await Sale.find()
+      .populate("product", "name price")
+      .populate("soldBy", "username role")
+      .lean();
 
-//     // USERS: search by username or email
-//     if (wantUsers) {
-//       tasks.push(
-//         User.find({ $or: [{ username: rx }, { email: rx }] })
-//           .select("_id username email role")
-//           .limit(limit)
-//           .lean()
-//           .then(rows =>
-//             rows.map(u => ({
-//               type: "Users",
-//               name: u.username,
-//               sub: u.email || "",
-//               link: `/html/manage-users.html?id=${u._id}`,
-//             }))
-//           )
-//       );
-//     } else {
-//       tasks.push(Promise.resolve([]));
-//     }
+    const filteredSales = sales
+      .filter(
+        (s) =>
+          (s.product?.name && new RegExp(q, "i").test(s.product.name)) ||
+          (s.soldBy?.username && new RegExp(q, "i").test(s.soldBy.username)),
+      )
+      .slice(0, limit);
 
-//     // SALES: match by product.name OR soldBy.username (via aggregation)
-//     if (wantSales) {
-//       tasks.push(
-//         Sale.aggregate([
-//           { $limit: 200 }, // soft cap before lookups; tweak for your dataset size
-//           {
-//             $lookup: {
-//               from: "products",
-//               localField: "product",
-//               foreignField: "_id",
-//               as: "product",
-//             },
-//           },
-//           { $unwind: "$product" },
-//           {
-//             $lookup: {
-//               from: "users",
-//               localField: "soldBy",
-//               foreignField: "_id",
-//               as: "soldBy",
-//             },
-//           },
-//           { $unwind: "$soldBy" },
-//           {
-//             $match: {
-//               $or: [
-//                 { "product.name": rx },
-//                 { "soldBy.username": rx },
-//                 // Optional: match formatted date strings
-//                 // { date: { $gte: startOfDay, $lte: endOfDay } }
-//               ],
-//             },
-//           },
-//           {
-//             $project: {
-//               _id: 1,
-//               quantity: 1,
-//               date: 1,
-//               "product.name": 1,
-//               "product.price": 1,
-//               "soldBy.username": 1,
-//             },
-//           },
-//           { $limit: limit },
-//         ]).then(rows =>
-//           rows.map(s => ({
-//             type: "Sales",
-//             name: `${s.product?.name || "Sale"} × ${s.quantity ?? "?"}`,
-//             sub: `by ${s.soldBy?.username || "?"} — ${new Date(s.date).toLocaleDateString()}`,
-//             link: `/html/viewsalesadmin.html?id=${s._id}`,
-//           }))
-//         )
-//       );
-//     } else {
-//       tasks.push(Promise.resolve([]));
-//     }
+    const results = [
+      ...products.map((p) => ({
+        type: "product",
+        id: String(p._id),
+        title: p.name,
+        subtitle: `$${Number(p.price || 0).toFixed(2)}  •  Qty: ${p.quantity}`,
+        href: "/html/products.html",
+      })),
+      ...users.map((u) => ({
+        type: "user",
+        id: String(u._id),
+        title: u.username,
+        subtitle: `${u.email || "-"}  •  ${u.role}`,
+        href: "/html/manage-users.html",
+      })),
+      ...filteredSales.map((s) => ({
+        type: "sale",
+        id: String(s._id),
+        title: `${s.product?.name || "-"} × ${s.quantity}`,
+        subtitle: `${s.soldBy?.username || "-"} • ${new Date(s.date).toLocaleDateString()} • $${((s.product?.price || 0) * s.quantity).toFixed(2)}`,
+        href: "/html/viewsalesadmin.html",
+      })),
+    ].slice(0, limit);
 
-//     const [productResults, userResults, saleResults] = await Promise.all(tasks);
+    res.json(results);
+  } catch (err) {
+    console.error("Search error:", err);
+    res.status(500).json({ error: "Search failed" });
+  }
+});
 
-//     // Flatten in desired order (Products, Users, Sales)
-//     const results = [...productResults, ...userResults, ...saleResults];
-
-//     res.json({ results });
-//   } catch (err) {
-//     console.error("Search error:", err);
-//     res.status(500).json({ error: "Search failed" });
-//   }
-// });
-
-// module.exports = router;
+module.exports = router;

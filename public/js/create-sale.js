@@ -92,6 +92,13 @@ function renderProducts(list) {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  // ✅ FIXED: Check authentication first
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    window.location.href = "/html/login.html";
+    return;
+  }
+
   try {
     const res = await fetch("/api/products");
     productsCache = await res.json();
@@ -107,7 +114,8 @@ document.getElementById("submitSale").addEventListener("click", async () => {
     quantity,
   }));
 
-  const userId = sessionStorage.getItem("userId");
+  // ✅ FIXED: Use localStorage instead of sessionStorage
+  const userId = localStorage.getItem("userId");
   if (!userId) {
     alert("User not logged in. Please login again.");
     location.href = "/html/login.html";

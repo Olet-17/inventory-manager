@@ -14,10 +14,12 @@ afterAll(async () => {
 });
 
 async function ensureSeller(username = "seller-x") {
+  // ✅ FIXED: Use correct auth endpoint
   await request(app)
-    .post("/api/register")
+    .post("/api/auth/register")
     .send({ username, password: "p", role: "sales" })
     .expect(201);
+  
   const users = await request(app).get("/api/users").expect(200);
   return users.body.find((u) => u.username === username)._id;
 }

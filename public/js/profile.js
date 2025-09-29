@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const userId = sessionStorage.getItem("userId");
+  // ✅ FIXED: Use localStorage instead of sessionStorage
+  const userId = localStorage.getItem("userId");
   const msg = document.getElementById("profileMessage");
   const form = document.getElementById("profileForm");
 
@@ -9,7 +10,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const res = await fetch(`/api/user/${userId}`);
+    // ✅ FIXED: Use the correct user endpoint
+    const res = await fetch(`/api/users/${userId}`);
     const data = await res.json();
 
     if (!res.ok || !data.user) {
@@ -31,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const updatedTheme = document.getElementById("theme").value;
       const updatedLang = document.getElementById("language").value;
 
-      const updateRes = await fetch(`/api/user/${userId}`, {
+      const updateRes = await fetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -66,7 +68,16 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
   const next = document.getElementById("newPassword").value;
   const confirm = document.getElementById("confirmPassword").value;
   const message = document.getElementById("passwordMessage");
-  const userId = sessionStorage.getItem("userId");
+  
+  // ✅ FIXED: Use localStorage instead of sessionStorage
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    message.textContent = "❌ Please log in again.";
+    message.style.color = "red";
+    window.location.href = "/html/login.html";
+    return;
+  }
 
   if (next !== confirm) {
     message.textContent = "❌ Passwords do not match.";
@@ -74,19 +85,25 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
     return;
   }
 
-  const res = await fetch(`/api/user/${userId}/password`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ currentPassword: current, newPassword: next }),
-  });
+  try {
+    const res = await fetch(`/api/users/${userId}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword: current, newPassword: next }),
+    });
 
-  const data = await res.json();
-  if (res.ok) {
-    message.textContent = "✅ Password updated!";
-    message.style.color = "green";
-    e.target.reset();
-  } else {
-    message.textContent = data.error || "❌ Failed to update password.";
+    const data = await res.json();
+    if (res.ok) {
+      message.textContent = "✅ Password updated!";
+      message.style.color = "green";
+      e.target.reset();
+    } else {
+      message.textContent = data.error || "❌ Failed to update password.";
+      message.style.color = "red";
+    }
+  } catch (error) {
+    console.error("Password update error:", error);
+    message.textContent = "❌ Server error during password update.";
     message.style.color = "red";
   }
 });

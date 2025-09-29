@@ -1,17 +1,32 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const me = JSON.parse(localStorage.getItem("user"));
+  // ✅ FIXED: Check authentication using userId from localStorage
+  const userId = localStorage.getItem("userId");
   const notAdmin = document.getElementById("notAdmin");
   const table = document.getElementById("salesTable");
   const theadRow = table.querySelector("thead tr");
   const tbody = table.querySelector("tbody");
 
-  if (!me || me.role !== "admin") {
-    notAdmin.textContent = "❌ Access denied. Admins only.";
-    notAdmin.style.display = "block";
+  if (!userId) {
+    window.location.href = "/html/login.html";
     return;
   }
 
   try {
+    // ✅ FIXED: Fetch user data to verify admin role
+    const userRes = await fetch('/api/auth/me', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ id: userId })
+    });
+    
+    const userData = await userRes.json();
+    
+    if (!userData || userData.role !== "admin") {
+      notAdmin.textContent = "❌ Access denied. Admins only.";
+      notAdmin.style.display = "block";
+      return;
+    }
+
     const res = await fetch("/api/sales"); // all sales
     const sales = await res.json();
 

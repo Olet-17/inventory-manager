@@ -17,6 +17,7 @@ const uploadSection = document.getElementById("imageUploadSection");
 // ===== STATE =====
 let productsCache = [];
 let currentProductId = null;
+
 // ===== LIGHTBOX (create once) =====
 function ensureImageModal() {
   // If a modal exists but has no close button, or you want a fresh one, remove it.
@@ -88,8 +89,6 @@ function openImageModal(src) {
   modalImg.src = src;
   modal.style.display = "flex"; // flex so image stays centered
 }
-
-// ===== Modify your renderProductTable =====
 
 // ===== HELPERS =====
 function setCurrentProduct(id) {
@@ -190,14 +189,34 @@ async function loadProducts() {
 
 // ===== BOOT =====
 window.addEventListener("DOMContentLoaded", async () => {
-  // Admin gate
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || user.role !== "admin") {
-    notAdmin.style.display = "block";
+  // ✅ FIXED: Check authentication first
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    window.location.href = "/html/login.html";
     return;
   }
-  productSection.style.display = "block";
-  await loadProducts();
+
+  // ✅ FIXED: Fetch user data to verify admin role
+  try {
+    const userRes = await fetch('/api/auth/me', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ id: userId })
+    });
+    
+    const userData = await userRes.json();
+    
+    if (!userData || userData.role !== "admin") {
+      notAdmin.style.display = "block";
+      return;
+    }
+
+    productSection.style.display = "block";
+    await loadProducts();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    notAdmin.style.display = "block";
+  }
 });
 
 // ===== FORM: Add product =====
@@ -205,14 +224,22 @@ productForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const name = document.getElementById("name").value.trim();
+  const sku = document.getElementById("sku").value.trim(); // ← ADDED THIS LINE
   const price = parseFloat(document.getElementById("price").value);
   const quantity = parseInt(document.getElementById("quantity").value, 10);
+
+  // Add validation for SKU
+  if (!sku) {
+    messageEl.textContent = "SKU is required";
+    messageEl.style.color = "red";
+    return;
+  }
 
   try {
     const res = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, price, quantity }),
+      body: JSON.stringify({ name, sku, price, quantity }), // ← ADDED SKU HERE
     });
     const data = await res.json();
 
@@ -286,26 +313,32 @@ uploadBtn?.addEventListener("click", async () => {
   const fd = new FormData();
   fd.append("image", f);
 
-  const resp = await fetch(`/api/products/${currentProductId}/image`, {
-    method: "POST",
-    body: fd,
-  });
-  const data = await resp.json();
-  if (!resp.ok) {
+  try {
+    const resp = await fetch(`/api/upload/products/${currentProductId}/image`, {
+      method: "POST",
+      body: fd,
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      uploadMsg.style.color = "red";
+      uploadMsg.textContent = data.error || "Upload failed";
+      return;
+    }
+
+    // update cache + UI
+    const idx = productsCache.findIndex((p) => p._id === currentProductId);
+    if (idx >= 0) productsCache[idx].imageUrl = data.imageUrl;
+
+    renderProductTable(productsCache);
+    previewImg.src = data.imageUrl;
+    previewImg.style.display = "block";
+    uploadMsg.style.color = "green";
+    uploadMsg.textContent = "Image uploaded!";
+  } catch (error) {
+    console.error("Upload error:", error);
     uploadMsg.style.color = "red";
-    uploadMsg.textContent = data.error || "Upload failed";
-    return;
+    uploadMsg.textContent = "Upload failed";
   }
-
-  // update cache + UI
-  const idx = productsCache.findIndex((p) => p._id === currentProductId);
-  if (idx >= 0) productsCache[idx].imageUrl = data.imageUrl;
-
-  renderProductTable(productsCache);
-  previewImg.src = data.imageUrl;
-  previewImg.style.display = "block";
-  uploadMsg.style.color = "green";
-  uploadMsg.textContent = "Image uploaded!";
 });
 
 // ===== DELETE PRODUCT =====

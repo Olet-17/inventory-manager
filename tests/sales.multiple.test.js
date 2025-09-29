@@ -16,8 +16,9 @@ afterAll(async () => {
 
 // helpers
 async function createUser(username = "seller1") {
+  // ✅ FIXED: Use correct auth endpoint
   await request(app)
-    .post("/api/register")
+    .post("/api/auth/register")
     .send({ username, password: "pass123", role: "sales" })
     .expect(201);
   const usersRes = await request(app).get("/api/users").expect(200);

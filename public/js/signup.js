@@ -6,7 +6,8 @@ document.getElementById("signupForm").addEventListener("submit", async function 
   const role = document.getElementById("role").value;
 
   try {
-    const res = await fetch("/api/register", {
+    // ✅ FIXED: Changed from /api/register to /api/auth/register
+    const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
