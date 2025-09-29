@@ -38,7 +38,7 @@ router.post("/", async (req, res) => {
     if (!soldBy) return res.status(400).json({ error: "soldBy (user id) is required" });
 
     let lines = Array.isArray(items) ? items : [{ productId, quantity }];
-    
+
     lines = lines
       .map((l) => ({
         productId: String(l.productId || "").trim(),

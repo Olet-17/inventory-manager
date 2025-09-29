@@ -68,7 +68,7 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
   const next = document.getElementById("newPassword").value;
   const confirm = document.getElementById("confirmPassword").value;
   const message = document.getElementById("passwordMessage");
-  
+
   // ✅ FIXED: Use localStorage instead of sessionStorage
   const userId = localStorage.getItem("userId");
 

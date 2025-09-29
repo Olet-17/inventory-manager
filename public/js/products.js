@@ -198,14 +198,14 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // ✅ FIXED: Fetch user data to verify admin role
   try {
-    const userRes = await fetch('/api/auth/me', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ id: userId })
+    const userRes = await fetch("/api/auth/me", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: userId }),
     });
-    
+
     const userData = await userRes.json();
-    
+
     if (!userData || userData.role !== "admin") {
       notAdmin.style.display = "block";
       return;

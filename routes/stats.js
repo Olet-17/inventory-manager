@@ -63,7 +63,10 @@ router.get("/profit-by-month", async (req, res) => {
     for (const s of sales) {
       const m = new Date(s.date).getMonth();
       const qty = Number(s.quantity || 0);
-      const price = typeof s.unitPrice === "number" ? s.unitPrice : (s.product?.unitPrice ?? s.product?.price ?? 0);
+      const price =
+        typeof s.unitPrice === "number"
+          ? s.unitPrice
+          : (s.product?.unitPrice ?? s.product?.price ?? 0);
       const cost = typeof s.unitCost === "number" ? s.unitCost : (s.product?.unitCost ?? 0);
 
       byMonth[m] += (price - cost) * qty;

@@ -8,14 +8,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // ✅ FIXED: Fetch user data using the new auth endpoint
-    const userRes = await fetch('/api/auth/me', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ id: userId })
+    const userRes = await fetch("/api/auth/me", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: userId }),
     });
-    
+
     const userData = await userRes.json();
-    
+
     if (!userData || userData.role !== "admin") {
       document.getElementById("notAllowed").style.display = "block";
       return;

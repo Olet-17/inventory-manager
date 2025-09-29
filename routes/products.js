@@ -15,21 +15,13 @@ router.get("/", async (req, res) => {
 // Create product - FIXED: Added SKU validation
 router.post("/", async (req, res) => {
   try {
-    const {
-      name,
-      price,
-      unitPrice,
-      cost,
-      unitCost,
-      quantity,
-      sku,
-      reorderLevel,
-    } = req.body;
+    const { name, price, unitPrice, cost, unitCost, quantity, sku, reorderLevel } = req.body;
 
     if (!name) return res.status(400).json({ error: "Name is required" });
     if (!sku) return res.status(400).json({ error: "SKU is required" }); // Added SKU validation
 
-    const finalPrice = typeof unitPrice === "number" ? unitPrice : typeof price === "number" ? price : 0;
+    const finalPrice =
+      typeof unitPrice === "number" ? unitPrice : typeof price === "number" ? price : 0;
     const finalCost = typeof unitCost === "number" ? unitCost : typeof cost === "number" ? cost : 0;
 
     const doc = await new Product({
@@ -46,18 +38,18 @@ router.post("/", async (req, res) => {
     return res.status(201).json(doc);
   } catch (err) {
     console.error("[POST /api/products] failed:", err);
-    
+
     // More specific error handling
     if (err.name === "ValidationError") {
-      const errors = Object.values(err.errors).map(e => e.message);
+      const errors = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({ error: errors.join(", ") });
     }
-    
+
     // Handle duplicate SKU errors
     if (err.code === 11000) {
       return res.status(400).json({ error: "SKU already exists" });
     }
-    
+
     return res.status(500).json({ error: "Failed to add product" });
   }
 });
@@ -67,16 +59,16 @@ router.put("/:id", async (req, res) => {
   try {
     const { name, price, quantity, sku } = req.body; // Added sku
     const updateData = { name, price, quantity };
-    
+
     // Only include sku if provided
     if (sku !== undefined) {
       updateData.sku = sku;
     }
-    
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true, runValidators: true } // Added runValidators
+      { new: true, runValidators: true }, // Added runValidators
     );
     if (!updatedProduct) return res.status(404).json({ error: "Product not found" });
     res.json({
@@ -85,13 +77,13 @@ router.put("/:id", async (req, res) => {
     });
   } catch (err) {
     console.error("[PUT /api/products/:id] failed:", err);
-    
+
     // Handle validation errors for updates too
     if (err.name === "ValidationError") {
-      const errors = Object.values(err.errors).map(e => e.message);
+      const errors = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({ error: errors.join(", ") });
     }
-    
+
     res.status(500).json({ error: "Failed to update product" });
   }
 });

@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // ✅ FIXED: Use localStorage to get userId
   const userId = localStorage.getItem("userId");
-  
+
   if (!userId) {
     document.getElementById("notLoggedIn").style.display = "block";
     return;
@@ -50,7 +50,7 @@ document.getElementById("exportCsvBtn").addEventListener("click", async () => {
     // ✅ FIXED: Export only current user's sales
     const res = await fetch(`/api/sales?userId=${userId}`);
     const data = await res.json();
-    
+
     const headers = ["Product", "Quantity", "Price", "Date"];
     const rows = data.map((sale) => [
       sale.product?.name || "?",

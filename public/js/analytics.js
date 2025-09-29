@@ -43,14 +43,14 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // ✅ FIXED: Fetch user data using the new auth endpoint
-    const userRes = await fetch('/api/auth/me', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ id: uid })
+    const userRes = await fetch("/api/auth/me", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: uid }),
     });
-    
+
     const userData = await userRes.json();
-    
+
     if (!userData || userData.role !== "admin") {
       return fail("❌ Access denied. Admins only.");
     }

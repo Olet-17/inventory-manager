@@ -104,7 +104,7 @@ async function composeDailySummary() {
 
 async function sendDailySummaryNow() {
   const s = await composeDailySummary();
-  
+
   // Post to Discord if webhook exists
   if (process.env.DISCORD_WEBHOOK_URL) {
     const text =
@@ -121,7 +121,7 @@ async function sendDailySummaryNow() {
       body: JSON.stringify({ content: text }),
     });
   }
-  
+
   return s;
 }
 

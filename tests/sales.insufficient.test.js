@@ -19,7 +19,7 @@ async function ensureSeller(username = "seller-x") {
     .post("/api/auth/register")
     .send({ username, password: "p", role: "sales" })
     .expect(201);
-  
+
   const users = await request(app).get("/api/users").expect(200);
   return users.body.find((u) => u.username === username)._id;
 }

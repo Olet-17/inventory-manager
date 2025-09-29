@@ -13,14 +13,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // ✅ FIXED: Fetch user data to verify admin role
-    const userRes = await fetch('/api/auth/me', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ id: userId })
+    const userRes = await fetch("/api/auth/me", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: userId }),
     });
-    
+
     const userData = await userRes.json();
-    
+
     if (!userData || userData.role !== "admin") {
       notAdmin.textContent = "❌ Access denied. Admins only.";
       notAdmin.style.display = "block";

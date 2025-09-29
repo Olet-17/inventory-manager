@@ -1,13 +1,13 @@
 window.addEventListener("DOMContentLoaded", () => {
   console.log("🔍 DEBUG: Dashboard script loaded");
-  
+
   // Debug all storage
   console.log("📦 sessionStorage contents:");
   for (let i = 0; i < sessionStorage.length; i++) {
     const key = sessionStorage.key(i);
     console.log("  ", key + " = " + sessionStorage.getItem(key));
   }
-  
+
   console.log("📦 localStorage contents:");
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -32,20 +32,20 @@ window.addEventListener("DOMContentLoaded", () => {
 async function fetchUserData(userId) {
   try {
     console.log("🔍 DEBUG: Fetching user data for ID:", userId);
-    
-    const res = await fetch('/api/auth/me', {
-      method: 'POST',
+
+    const res = await fetch("/api/auth/me", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: userId })
+      body: JSON.stringify({ id: userId }),
     });
-    
+
     console.log("🔍 DEBUG: API Response status:", res.status);
-    
+
     const data = await res.json();
     console.log("🔍 DEBUG: User API response data:", data);
-    
+
     if (res.ok && data.id) {
       console.log("✅ DEBUG: User data successfully loaded");
       const user = data;
@@ -63,7 +63,7 @@ async function fetchUserData(userId) {
         document.getElementById("salesPanel")?.classList.remove("hidden");
         console.log("✅ DEBUG: Sales panel shown");
       }
-      
+
       console.log("✅ DEBUG: Dashboard fully loaded!");
     } else {
       console.error("❌ DEBUG: API returned error:", data.error);
