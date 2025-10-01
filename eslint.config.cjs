@@ -1,4 +1,3 @@
-// eslint.config.cjs
 const js = require("@eslint/js");
 const globals = require("globals");
 
@@ -7,25 +6,30 @@ module.exports = [
 
   // --- Node / server files ---
   {
-    files: ["server.js", "routes/**", "models/**", "*.config.cjs", "*.config.js"], // ← Added "models/**"
+    files: [
+      "server.js",
+      "routes/**",
+      "models/**",
+      "db/**", // ← Add this
+      "scripts/**", // ← Add this
+      "*.config.cjs",
+      "*.config.js",
+    ],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "commonjs",
       globals: {
-        ...globals.node, // require, module, __dirname, process, Buffer, console, etc.
+        ...globals.node,
       },
     },
     rules: {
-      // keep style rules light to reduce churn
-      quotes: ["warn", "double"],
+      quotes: ["warn", "double"], // Your config uses double quotes
       semi: ["error", "always"],
-
-      // allow unused placeholders like (err, _next) without failing CI
       "no-unused-vars": [
         "warn",
         {
           argsIgnorePattern: "^_",
-          varsIgnorePattern: "^(transporter|buildCsvBuffer|PDFDocument|Product|User|escapeRegExp)$", // ← Added more ignored vars
+          varsIgnorePattern: "^(transporter|buildCsvBuffer|PDFDocument|Product|User|escapeRegExp)$",
         },
       ],
     },
@@ -38,14 +42,14 @@ module.exports = [
       ecmaVersion: "latest",
       sourceType: "script",
       globals: {
-        ...globals.browser, // window, document, fetch, URLSearchParams, setTimeout, etc.
-        Chart: "readonly", // Chart.js global from CDN
+        ...globals.browser,
+        Chart: "readonly",
       },
     },
     rules: {
       "no-console": "off",
       "no-empty": "off",
-      "no-unused-vars": "off", // front-end helpers/handlers often trip this
+      "no-unused-vars": "off",
     },
   },
 
@@ -57,11 +61,12 @@ module.exports = [
       sourceType: "commonjs",
       globals: {
         ...globals.node,
-        ...globals.jest, // describe, test, expect, beforeAll, afterAll...
+        ...globals.jest,
       },
     },
     rules: {
       "no-console": "off",
+      "no-unused-vars": "warn", // Change to warn for tests
     },
   },
 ];

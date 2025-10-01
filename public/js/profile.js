@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ FIXED: Use localStorage instead of sessionStorage
   const userId = localStorage.getItem("userId");
   const msg = document.getElementById("profileMessage");
   const form = document.getElementById("profileForm");
@@ -10,15 +9,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // ✅ FIXED: Use the correct user endpoint
-    const res = await fetch(`/api/users/${userId}`);
-    const data = await res.json();
+    // ✅ FIXED: Use auth/me endpoint instead of /api/users/:id
+    const res = await fetch("/api/auth/me", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: userId }),
+    });
 
-    if (!res.ok || !data.user) {
+    if (!res.ok) {
       throw new Error("User not found");
     }
 
-    const user = data.user;
+    const user = await res.json(); // Direct user object, not data.user
 
     // Set form values
     document.getElementById("username").value = user.username || "";
@@ -33,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const updatedTheme = document.getElementById("theme").value;
       const updatedLang = document.getElementById("language").value;
 
+      // ✅ FIXED: Use the correct update endpoint for PostgreSQL
       const updateRes = await fetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: {
@@ -51,7 +54,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         msg.textContent = "✅ Profile updated successfully!";
         msg.style.color = "green";
       } else {
-        msg.textContent = "❌ Failed to update profile.";
+        const errorData = await updateRes.json();
+        msg.textContent = `❌ ${errorData.error || "Failed to update profile."}`;
         msg.style.color = "red";
       }
     });
@@ -69,7 +73,6 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
   const confirm = document.getElementById("confirmPassword").value;
   const message = document.getElementById("passwordMessage");
 
-  // ✅ FIXED: Use localStorage instead of sessionStorage
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
@@ -86,6 +89,7 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
   }
 
   try {
+    // ✅ FIXED: Use the correct password update endpoint
     const res = await fetch(`/api/users/${userId}/password`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

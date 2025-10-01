@@ -14,9 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     // ✅ FIXED: Send userId in the request body for /api/auth/me
     const userRes = await fetch("/api/auth/me", {
-      method: "POST",  // Keep as POST
+      method: "POST", // Keep as POST
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId })
+      body: JSON.stringify({ id: userId }),
     });
 
     if (!userRes.ok) {
@@ -33,11 +33,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ✅ FIXED: Fetch sales without token
     const res = await fetch("/api/sales");
-    
+
     if (!res.ok) {
       throw new Error("Failed to fetch sales");
     }
-    
+
     const sales = await res.json();
 
     // Rest of your code remains the same...
@@ -106,8 +106,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       // ✅ FIXED: Delete without token
-      const res = await fetch(`/api/sales/${id}`, { 
-        method: "DELETE"
+      const res = await fetch(`/api/sales/${id}`, {
+        method: "DELETE",
       });
       const data = await res.json();
       if (!res.ok) {

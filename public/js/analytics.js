@@ -73,7 +73,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       const usersRes = await fetch("/api/auth-sql/users-sql");
       const usersData = await usersRes.json();
       const users = usersData.users; // PostgreSQL returns { users: [...] }
-      
+
       users.forEach((u) => {
         const opt = document.createElement("option");
         opt.value = u.id; // ✅ CHANGED: Use id instead of _id

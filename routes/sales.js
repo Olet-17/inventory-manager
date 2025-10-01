@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
   try {
     const { userId, startDate, endDate } = req.query;
     const filter = {};
-    
+
     if (userId) filter.soldBy = userId;
     if (startDate || endDate) {
       filter.date = {};
@@ -76,18 +76,17 @@ router.post("/", async (req, res) => {
     }
 
     if (errors.length > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Some items failed",
         details: errors,
-        successfulSales: sales.length
+        successfulSales: sales.length,
       });
     }
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: "Sale completed successfully",
-      sales: sales 
+      sales: sales,
     });
-
   } catch (error) {
     console.error("Sale creation error:", error);
     res.status(500).json({ error: "Sale creation failed" });

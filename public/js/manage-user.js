@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function toggleRole(id, currentRole) {
   const newRole = currentRole === "admin" ? "sales" : "admin";
-  
+
   // ✅ CHANGED: Use PostgreSQL role update endpoint
   const res = await fetch(`/api/auth-sql/users/${id}/role`, {
     method: "PUT",

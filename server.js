@@ -20,15 +20,15 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
 
 // Import SQL connection - FIXED IMPORT
-const { sqlPool, initializeTables } = require('./db/sql');
+const { sqlPool, initializeTables } = require("./db/sql");
 
 // Initialize both databases
 async function initializeDatabases() {
   try {
     await initializeTables();
-    console.log('🎯 Dual Database System: MongoDB + PostgreSQL READY!');
+    console.log("🎯 Dual Database System: MongoDB + PostgreSQL READY!");
   } catch (error) {
-    console.error('Database initialization failed:', error);
+    console.error("Database initialization failed:", error);
   }
 }
 
@@ -39,7 +39,7 @@ const User = require("./models/User");
 
 // Import routes
 const authRoutes = require("./routes/auth");
-const authSqlRoutes = require("./routes/auth-sql"); 
+const authSqlRoutes = require("./routes/auth-sql");
 const productRoutes = require("./routes/products");
 const saleRoutes = require("./routes/sales");
 const userRoutes = require("./routes/users");
@@ -67,15 +67,15 @@ app.get("/api/dual-test", async (req, res) => {
   try {
     // MongoDB query
     const products = await Product.find().limit(3);
-    
-    // PostgreSQL query  
-    const users = await sqlPool.query('SELECT * FROM users LIMIT 3');
-    
+
+    // PostgreSQL query
+    const users = await sqlPool.query("SELECT * FROM users LIMIT 3");
+
     res.json({
-      message: 'Dual Database System Working!',
+      message: "Dual Database System Working!",
       mongodb: { products: products.length },
       postgresql: { users: users.rows.length },
-      status: 'EPIC SUCCESS! 🚀'
+      status: "EPIC SUCCESS! 🚀",
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

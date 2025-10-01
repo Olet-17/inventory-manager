@@ -33,11 +33,11 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       localStorage.setItem("userId", data.user.id);
       localStorage.setItem("userRole", data.user.role);
       localStorage.setItem("username", data.user.username);
-      
+
       console.log("✅ DEBUG: Saved user data to localStorage:", {
         id: data.user.id,
         role: data.user.role,
-        username: data.user.username
+        username: data.user.username,
       });
 
       // Verify storage

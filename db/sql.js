@@ -1,11 +1,11 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 // Create a single connection pool (reusable)
 const sqlPool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'inventory_app',
-  password: '1234',
+  user: "postgres",
+  host: "localhost",
+  database: "inventory_app",
+  password: "1234",
   port: 5432,
 });
 
@@ -33,23 +33,26 @@ async function initializeTables() {
 
     // Add email column if it doesn't exist
     if (tableCheck.rows.length === 0) {
-      await sqlPool.query('ALTER TABLE users ADD COLUMN email VARCHAR(100)');
-      console.log('✅ Added email column to users table');
+      await sqlPool.query("ALTER TABLE users ADD COLUMN email VARCHAR(100)");
+      console.log("✅ Added email column to users table");
     }
 
     // Add other columns if they don't exist
     const additionalColumns = [
-      { name: 'is_active', type: 'BOOLEAN DEFAULT true' },
-      { name: 'last_login', type: 'TIMESTAMP' },
-      { name: 'updated_at', type: 'TIMESTAMP DEFAULT NOW()' }
+      { name: "is_active", type: "BOOLEAN DEFAULT true" },
+      { name: "last_login", type: "TIMESTAMP" },
+      { name: "updated_at", type: "TIMESTAMP DEFAULT NOW()" },
     ];
 
     for (const column of additionalColumns) {
-      const colCheck = await sqlPool.query(`
+      const colCheck = await sqlPool.query(
+        `
         SELECT column_name 
         FROM information_schema.columns 
         WHERE table_name = 'users' AND column_name = $1
-      `, [column.name]);
+      `,
+        [column.name],
+      );
 
       if (colCheck.rows.length === 0) {
         await sqlPool.query(`ALTER TABLE users ADD COLUMN ${column.name} ${column.type}`);
@@ -57,15 +60,16 @@ async function initializeTables() {
       }
     }
 
-    console.log('✅ PostgreSQL users table ready!');
+    console.log("✅ PostgreSQL users table ready!");
   } catch (error) {
-    console.error('❌ Table initialization failed:', error.message);
+    console.error("❌ Table initialization failed:", error.message);
   }
 }
 
 // Test connection
-sqlPool.query('SELECT NOW() as time')
-  .then(result => console.log('✅ PostgreSQL connected:', result.rows[0].time))
-  .catch(err => console.error('❌ PostgreSQL connection failed:', err));
+sqlPool
+  .query("SELECT NOW() as time")
+  .then((result) => console.log("✅ PostgreSQL connected:", result.rows[0].time))
+  .catch((err) => console.error("❌ PostgreSQL connection failed:", err));
 
 module.exports = { sqlPool, initializeTables };
