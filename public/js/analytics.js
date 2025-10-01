@@ -42,16 +42,17 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // ✅ FIXED: Fetch user data using the new auth endpoint
-    const userRes = await fetch("/api/auth/me", {
+    // ✅ CHANGED: Use PostgreSQL auth endpoint
+    const userRes = await fetch("/api/auth-sql/user-info", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: uid }),
+      body: JSON.stringify({ userId: uid }),
     });
 
     const userData = await userRes.json();
 
-    if (!userData || userData.role !== "admin") {
+    // ✅ CHANGED: Check userData.user.role (PostgreSQL format)
+    if (!userData.user || userData.user.role !== "admin") {
       return fail("❌ Access denied. Admins only.");
     }
 
@@ -67,12 +68,15 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // Populate users if control exists
+    // ✅ CHANGED: Use PostgreSQL users endpoint
     if (userSelect) {
-      const users = await (await fetch("/api/users")).json();
+      const usersRes = await fetch("/api/auth-sql/users-sql");
+      const usersData = await usersRes.json();
+      const users = usersData.users; // PostgreSQL returns { users: [...] }
+      
       users.forEach((u) => {
         const opt = document.createElement("option");
-        opt.value = u._id;
+        opt.value = u.id; // ✅ CHANGED: Use id instead of _id
         opt.textContent = u.username;
         userSelect.appendChild(opt);
       });
@@ -620,3 +624,5 @@ function drawOrUpdate(canvasId, type, data, options = {}) {
     charts[canvasId] = new Chart(ctx, { type, data, options });
   }
 }
+
+console.log("✅ PostgreSQL Analytics ready!");

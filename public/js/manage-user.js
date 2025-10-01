@@ -7,16 +7,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // ✅ FIXED: Fetch user data using the new auth endpoint
-    const userRes = await fetch("/api/auth/me", {
+    // ✅ CHANGED: Use PostgreSQL auth endpoint
+    const userRes = await fetch("/api/auth-sql/user-info", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId }),
+      body: JSON.stringify({ userId: userId }),
     });
 
     const userData = await userRes.json();
 
-    if (!userData || userData.role !== "admin") {
+    // ✅ CHANGED: Check userData.user.role (PostgreSQL format)
+    if (!userData.user || userData.user.role !== "admin") {
       document.getElementById("notAllowed").style.display = "block";
       return;
     }
@@ -24,21 +25,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const table = document.getElementById("userTable");
     const tbody = table.querySelector("tbody");
 
-    const res = await fetch("/api/users");
-    const users = await res.json();
+    // ✅ CHANGED: Use PostgreSQL users endpoint
+    const res = await fetch("/api/auth-sql/users-sql");
+    const data = await res.json();
+    const users = data.users; // PostgreSQL returns { users: [...] }
 
     table.style.display = "table";
 
     users.forEach((u) => {
       const row = document.createElement("tr");
 
+      // ✅ CHANGED: Use PostgreSQL field names (id instead of _id)
       row.innerHTML = `
         <td>${u.username}</td>
         <td>${u.email || "-"}</td>
         <td>${u.role}</td>
         <td>
-          <button onclick="toggleRole('${u._id}', '${u.role}')">🔁 Role</button>
-          <button onclick="deleteUser('${u._id}')">🗑️ Delete</button>
+          <button onclick="toggleRole('${u.id}', '${u.role}')">🔁 Role</button>
+          <button onclick="deleteUser('${u.id}')">🗑️ Delete</button>
         </td>
       `;
 
@@ -52,7 +56,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function toggleRole(id, currentRole) {
   const newRole = currentRole === "admin" ? "sales" : "admin";
-  const res = await fetch(`/api/users/${id}/role`, {
+  
+  // ✅ CHANGED: Use PostgreSQL role update endpoint
+  const res = await fetch(`/api/auth-sql/users/${id}/role`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ role: newRole }),
@@ -64,9 +70,12 @@ async function toggleRole(id, currentRole) {
 async function deleteUser(id) {
   if (!confirm("Are you sure you want to delete this user?")) return;
 
-  const res = await fetch(`/api/users/${id}`, {
+  // ✅ CHANGED: Use PostgreSQL delete endpoint
+  const res = await fetch(`/api/auth-sql/users/${id}`, {
     method: "DELETE",
   });
 
   if (res.ok) location.reload();
 }
+
+console.log("✅ PostgreSQL Manage Users ready!");

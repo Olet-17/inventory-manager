@@ -1,4 +1,4 @@
-// create-sale.js
+// public/js/create-sale.js - BROWSER VERSION
 
 let productsCache = [];
 const selected = new Map(); // productId -> quantity

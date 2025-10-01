@@ -196,17 +196,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ FIXED: Fetch user data to verify admin role
+  // ✅ CHANGED: Use PostgreSQL auth endpoint
   try {
-    const userRes = await fetch("/api/auth/me", {
+    const userRes = await fetch("/api/auth-sql/user-info", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId }),
+      body: JSON.stringify({ userId: userId }),
     });
 
     const userData = await userRes.json();
 
-    if (!userData || userData.role !== "admin") {
+    // ✅ CHANGED: Check userData.user.role (PostgreSQL format)
+    if (!userData.user || userData.user.role !== "admin") {
       notAdmin.style.display = "block";
       return;
     }
@@ -224,7 +225,7 @@ productForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const name = document.getElementById("name").value.trim();
-  const sku = document.getElementById("sku").value.trim(); // ← ADDED THIS LINE
+  const sku = document.getElementById("sku").value.trim();
   const price = parseFloat(document.getElementById("price").value);
   const quantity = parseInt(document.getElementById("quantity").value, 10);
 
@@ -239,7 +240,7 @@ productForm?.addEventListener("submit", async (e) => {
     const res = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, sku, price, quantity }), // ← ADDED SKU HERE
+      body: JSON.stringify({ name, sku, price, quantity }),
     });
     const data = await res.json();
 
@@ -365,3 +366,5 @@ async function deleteProduct(id) {
   }
 }
 window.deleteProduct = deleteProduct;
+
+console.log("✅ PostgreSQL Products management ready!");

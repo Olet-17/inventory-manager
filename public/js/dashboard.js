@@ -25,30 +25,31 @@ window.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  console.log("✅ DEBUG: UserId found, proceeding to fetch user data");
+  console.log("✅ DEBUG: UserId found, proceeding to fetch user data from PostgreSQL");
   fetchUserData(userId);
 });
 
 async function fetchUserData(userId) {
   try {
-    console.log("🔍 DEBUG: Fetching user data for ID:", userId);
+    console.log("🔍 DEBUG: Fetching user data from PostgreSQL for ID:", userId);
 
-    const res = await fetch("/api/auth/me", {
+    // ✅ CHANGED: Use PostgreSQL endpoint
+    const res = await fetch("/api/auth-sql/user-info", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: userId }),
+      body: JSON.stringify({ userId: userId }),
     });
 
-    console.log("🔍 DEBUG: API Response status:", res.status);
+    console.log("🔍 DEBUG: PostgreSQL API Response status:", res.status);
 
     const data = await res.json();
-    console.log("🔍 DEBUG: User API response data:", data);
+    console.log("🔍 DEBUG: PostgreSQL User API response data:", data);
 
-    if (res.ok && data.id) {
-      console.log("✅ DEBUG: User data successfully loaded");
-      const user = data;
+    if (res.ok && data.user) {
+      console.log("✅ DEBUG: PostgreSQL user data successfully loaded");
+      const user = data.user;
 
       const roleElement = document.getElementById("userRole");
       if (roleElement) {
@@ -66,11 +67,11 @@ async function fetchUserData(userId) {
 
       console.log("✅ DEBUG: Dashboard fully loaded!");
     } else {
-      console.error("❌ DEBUG: API returned error:", data.error);
+      console.error("❌ DEBUG: PostgreSQL API returned error:", data.error);
       window.location.href = "/html/login.html";
     }
   } catch (error) {
-    console.error("❌ DEBUG: Error fetching user data:", error);
+    console.error("❌ DEBUG: Error fetching PostgreSQL user data:", error);
     window.location.href = "/html/login.html";
   }
 }
@@ -150,3 +151,5 @@ if (dropdown) {
     } catch {}
   });
 }
+
+console.log("✅ PostgreSQL Dashboard authentication ready!");

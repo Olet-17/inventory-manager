@@ -6,8 +6,8 @@ document.getElementById("signupForm").addEventListener("submit", async function 
   const role = document.getElementById("role").value;
 
   try {
-    // ✅ FIXED: Changed from /api/register to /api/auth/register
-    const res = await fetch("/api/auth/register", {
+    // ✅ CHANGED: Now using PostgreSQL registration endpoint
+    const res = await fetch("/api/auth-sql/register-sql", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,7 +19,7 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     const msg = document.getElementById("message");
 
     if (res.ok) {
-      msg.textContent = "Signup successful!";
+      msg.textContent = "Signup successful! (PostgreSQL)";
       msg.style.color = "green";
       setTimeout(() => {
         window.location.href = "login.html";
@@ -29,7 +29,10 @@ document.getElementById("signupForm").addEventListener("submit", async function 
       msg.style.color = "red";
     }
   } catch (err) {
-    console.error("Error during signup:", err);
+    console.error("PostgreSQL Signup error:", err);
+    const msg = document.getElementById("message");
+    msg.textContent = "An unexpected error occurred.";
+    msg.style.color = "red";
   }
 });
 
@@ -55,3 +58,5 @@ function updateStrengthMeter(val, bar, text) {
   bar.style.background = colors[strength - 1] || "transparent";
   text.textContent = labels[strength - 1] || "";
 }
+
+console.log("✅ PostgreSQL Signup ready!");

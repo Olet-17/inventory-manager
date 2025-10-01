@@ -1,18 +1,56 @@
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
-  sku: { type: String, required: true, unique: true, index: true },
-  name: String,
-  price: Number,
-  cost: { type: Number, default: 0 },
-  reorderLevel: { type: Number, default: 5 },
-  quantity: Number,
-  imageUrl: { type: String, default: "" },
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  sku: {
+    type: String,
+    required: false, // ✅ CHANGED: Make SKU optional for now
+    trim: true,
+    sparse: true // Allows multiple nulls but enforces uniqueness for non-null
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  unitPrice: {
+    type: Number,
+    default: 0
+  },
+  cost: {
+    type: Number,
+    default: 0
+  },
+  unitCost: {
+    type: Number,
+    default: 0
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: 0
+  },
+  reorderLevel: {
+    type: Number,
+    default: 5
+  },
+  imageUrl: {
+    type: String,
+    default: ""
+  }
+}, {
+  timestamps: true
 });
 
-const Product = mongoose.model("Product", productSchema);
+// ✅ ADD: Create a unique index for SKU (but allow nulls)
+productSchema.index({ sku: 1 }, { 
+  unique: true, 
+  partialFilterExpression: { sku: { $type: "string" } } 
+});
 
-// Create indexes
-Product.collection.createIndex({ name: "text" }).catch(() => {});
-
-module.exports = Product;
+module.exports = mongoose.model("Product", productSchema);

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ FIXED: Check authentication using userId from localStorage
+  // ✅ Use userId from localStorage (not token)
   const userId = localStorage.getItem("userId");
   const notAdmin = document.getElementById("notAdmin");
   const table = document.getElementById("salesTable");
@@ -12,12 +12,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // ✅ FIXED: Fetch user data to verify admin role
+    // ✅ FIXED: Send userId in the request body for /api/auth/me
     const userRes = await fetch("/api/auth/me", {
-      method: "POST",
+      method: "POST",  // Keep as POST
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId }),
+      body: JSON.stringify({ id: userId })
     });
+
+    if (!userRes.ok) {
+      throw new Error("Authentication failed");
+    }
 
     const userData = await userRes.json();
 
@@ -27,14 +31,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const res = await fetch("/api/sales"); // all sales
+    // ✅ FIXED: Fetch sales without token
+    const res = await fetch("/api/sales");
+    
+    if (!res.ok) {
+      throw new Error("Failed to fetch sales");
+    }
+    
     const sales = await res.json();
 
-    // figure out if Role column is redundant
+    // Rest of your code remains the same...
     const roleSet = new Set(sales.map((s) => s?.soldBy?.role).filter(Boolean));
     const hideRoleCol = roleSet.size <= 1;
 
-    // table header (add Actions column)
     theadRow.innerHTML = `
       <th>Product</th>
       <th>Qty</th>
@@ -52,7 +61,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       maximumFractionDigits: 2,
     });
 
-    // rows
     tbody.innerHTML = "";
     for (const sale of sales) {
       const name = sale.product?.name ?? "-";
@@ -97,13 +105,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!confirm("Are you sure you want to delete this sale?")) return;
 
     try {
-      const res = await fetch(`/api/sales/${id}`, { method: "DELETE" });
+      // ✅ FIXED: Delete without token
+      const res = await fetch(`/api/sales/${id}`, { 
+        method: "DELETE"
+      });
       const data = await res.json();
       if (!res.ok) {
         alert("❌ Error: " + (data.error || "Failed to delete"));
         return;
       }
-      // remove row from UI
       btn.closest("tr")?.remove();
     } catch (err) {
       console.error("Delete failed:", err);
@@ -111,7 +121,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Simple HTML escape helper
   function escapeHtml(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
