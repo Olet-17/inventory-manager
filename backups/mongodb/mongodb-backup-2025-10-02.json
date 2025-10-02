@@ -1,0 +1,508 @@
+{
+  "notifications": [
+    {
+      "_id": "68da95aafbbb443eaaacec88",
+      "message": "💸 3 x Olet Sharapolli sold by Olett",
+      "type": "success",
+      "seen": false,
+      "createdAt": "2025-09-29T14:20:26.910Z",
+      "__v": 0
+    },
+    {
+      "_id": "68da95aafbbb443eaaacec89",
+      "message": "💸 10 x Wireless Mouse sold by Olett",
+      "type": "success",
+      "seen": false,
+      "createdAt": "2025-09-29T14:20:26.910Z",
+      "__v": 0
+    }
+  ],
+  "sales": [
+    {
+      "_id": "6877fecdcbc0dc0ce55731d7",
+      "product": "6876788b9517b3bfaa6044df",
+      "quantity": 1,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-07-16T19:34:37.498Z",
+      "__v": 0
+    },
+    {
+      "_id": "68794c55862f73af02bc7bdf",
+      "product": "68794c3e862f73af02bc7bd3",
+      "quantity": 1,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-07-17T19:17:41.426Z",
+      "__v": 0
+    },
+    {
+      "_id": "68794c59862f73af02bc7be3",
+      "product": "68794c3e862f73af02bc7bd3",
+      "quantity": 3,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-07-17T19:17:45.686Z",
+      "__v": 0
+    },
+    {
+      "_id": "68794c5c862f73af02bc7be7",
+      "product": "68794c49862f73af02bc7bd6",
+      "quantity": 2,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-07-17T19:17:48.005Z",
+      "__v": 0
+    },
+    {
+      "_id": "687b7e342a4117a9aeeddd08",
+      "product": "68794c3e862f73af02bc7bd3",
+      "quantity": 2,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-07-19T11:15:00.586Z",
+      "__v": 0
+    },
+    {
+      "_id": "687cb23213bd788392911423",
+      "product": "687cb21513bd78839291141a",
+      "quantity": 2,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-07-20T09:09:06.134Z",
+      "__v": 0
+    },
+    {
+      "_id": "687cc1148f7a275d4e1a8764",
+      "product": "68794c3e862f73af02bc7bd3",
+      "quantity": 2,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-07-20T10:12:36.602Z",
+      "__v": 0
+    },
+    {
+      "_id": "687d3d829ae45399590846fc",
+      "product": "687d3d469ae45399590846e9",
+      "quantity": 3,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-07-20T19:03:30.012Z",
+      "__v": 0
+    },
+    {
+      "_id": "689dcaff74d0230eb9cfb692",
+      "product": "687cc1038f7a275d4e1a875b",
+      "quantity": 3,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-08-14T11:39:43.531Z",
+      "__v": 0
+    },
+    {
+      "_id": "689f3e27a3e0643cee3c4e42",
+      "product": "68794c49862f73af02bc7bd6",
+      "quantity": 1,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-08-15T14:03:19.768Z",
+      "__v": 0
+    },
+    {
+      "_id": "68b6e1b8ae3b210d611f5cc2",
+      "product": "687cc1038f7a275d4e1a875b",
+      "quantity": 1,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-09-02T12:23:20.380Z",
+      "__v": 0
+    },
+    {
+      "_id": "68b6e1bdae3b210d611f5ccb",
+      "product": "68794c3e862f73af02bc7bd3",
+      "quantity": 2,
+      "soldBy": "6872b5a524aab48618f31a22",
+      "date": "2025-09-02T12:23:25.836Z",
+      "__v": 0
+    },
+    {
+      "_id": "68b810c12bdb6664a5a68133",
+      "product": "687cb21513bd78839291141a",
+      "quantity": 2,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-09-03T09:56:17.421Z",
+      "__v": 0
+    },
+    {
+      "_id": "68cfd30b3ae71fe8881fbd98",
+      "product": "689dca5e2890d7d5e3d74a22",
+      "quantity": 2,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-09-21T10:27:23.294Z",
+      "__v": 0
+    },
+    {
+      "_id": "68cfd3133ae71fe8881fbdae",
+      "product": "687cb21513bd78839291141a",
+      "quantity": 2,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-09-21T10:27:31.155Z",
+      "__v": 0
+    },
+    {
+      "_id": "68cfded697ef8416f46d5007",
+      "product": "687cc1038f7a275d4e1a875b",
+      "quantity": 1,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-09-21T11:17:42.719Z",
+      "__v": 0
+    },
+    {
+      "_id": "68cfdf1997ef8416f46d502b",
+      "product": "68cfdf0697ef8416f46d501e",
+      "quantity": 2,
+      "soldBy": "6873aed05588e178e721aeb4",
+      "date": "2025-09-21T11:18:49.084Z",
+      "__v": 0
+    },
+    {
+      "_id": "68d3c0971f3759560125860d",
+      "product": "68d1763d2709b36f4df3e0b8",
+      "quantity": 2,
+      "soldBy": "68cfd2fb3ae71fe8881fbd83",
+      "unitPrice": 5.99,
+      "unitCost": 0,
+      "date": "2025-09-24T09:57:43.348Z",
+      "__v": 0
+    },
+    {
+      "_id": "68d5776dde04b625c9c0501e",
+      "product": "68d1763d2709b36f4df3e0b8",
+      "quantity": 30,
+      "soldBy": "68d5775cde04b625c9c05015",
+      "unitPrice": 5.99,
+      "unitCost": 0,
+      "date": "2025-09-25T17:10:05.361Z",
+      "__v": 0
+    },
+    {
+      "_id": "68d7b779a602f02aa678bb29",
+      "product": "68d1763d2709b36f4df3e0b5",
+      "quantity": 10,
+      "soldBy": "68cfd2fb3ae71fe8881fbd83",
+      "unitPrice": 129.99,
+      "unitCost": 0,
+      "date": "2025-09-27T10:07:53.184Z",
+      "__v": 0
+    },
+    {
+      "_id": "68d7b779a602f02aa678bb2a",
+      "product": "687d3d469ae45399590846e9",
+      "quantity": 1,
+      "soldBy": "68cfd2fb3ae71fe8881fbd83",
+      "unitPrice": 2,
+      "unitCost": 0,
+      "date": "2025-09-27T10:07:53.186Z",
+      "__v": 0
+    },
+    {
+      "_id": "68da95aafbbb443eaaacec83",
+      "product": "68cfdf0697ef8416f46d501e",
+      "quantity": 3,
+      "soldBy": "68cfd2fb3ae71fe8881fbd83",
+      "unitPrice": 120,
+      "unitCost": 0,
+      "date": "2025-09-29T14:20:26.900Z",
+      "__v": 0
+    },
+    {
+      "_id": "68da95aafbbb443eaaacec84",
+      "product": "68d1763d2709b36f4df3e0af",
+      "quantity": 10,
+      "soldBy": "68cfd2fb3ae71fe8881fbd83",
+      "unitPrice": 15.99,
+      "unitCost": 0,
+      "date": "2025-09-29T14:20:26.900Z",
+      "__v": 0
+    },
+    {
+      "_id": "68dd1bfe8e823199af8380cb",
+      "product": "68cfdf0697ef8416f46d501e",
+      "quantity": 9,
+      "soldBy": "13",
+      "date": "2025-10-01T12:18:06.959Z",
+      "__v": 0
+    },
+    {
+      "_id": "68dd1d4f8e823199af8380db",
+      "product": "68d1763d2709b36f4df3e0af",
+      "quantity": 10,
+      "soldBy": "10",
+      "date": "2025-10-01T12:23:43.091Z",
+      "__v": 0
+    }
+  ],
+  "products": [
+    {
+      "_id": "6876788b9517b3bfaa6044df",
+      "name": "Llaptop",
+      "price": 2,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "68794c3e862f73af02bc7bd3",
+      "name": "Llaptop",
+      "price": 200,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "68794c49862f73af02bc7bd6",
+      "name": "Mini",
+      "price": 13,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "687cb21513bd78839291141a",
+      "name": "Makarona",
+      "price": 12,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "687cc1038f7a275d4e1a875b",
+      "name": "Makarona1",
+      "price": 100,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "687d3d469ae45399590846e9",
+      "name": "aloe vera",
+      "price": 2,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "689dca5e2890d7d5e3d74a22",
+      "name": "Olet",
+      "price": 12,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "68cfdf0697ef8416f46d501e",
+      "name": "Olet Sharapolli",
+      "price": 120,
+      "quantity": 9,
+      "__v": 0
+    },
+    {
+      "_id": "68d1763d2709b36f4df3e0af",
+      "sku": "P001",
+      "name": "Wireless Mouse",
+      "price": 15.99,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 30,
+      "__v": 0,
+      "imageUrl": "/uploads/products/db9c46dbd844a386af715c310e5f4393.png"
+    },
+    {
+      "_id": "68d1763d2709b36f4df3e0b2",
+      "sku": "P002",
+      "name": "Mechanical Keyboard",
+      "price": 69.99,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 20,
+      "__v": 0
+    },
+    {
+      "_id": "68d1763d2709b36f4df3e0b5",
+      "sku": "P003",
+      "name": "HD Monitor 24\"",
+      "price": 129.99,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 0,
+      "__v": 0
+    },
+    {
+      "_id": "68d1763d2709b36f4df3e0b8",
+      "sku": "P004",
+      "name": "USB-C Cable",
+      "price": 5.99,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 68,
+      "__v": 0,
+      "imageUrl": "/uploads/products/d44be1fc0c77eddd44bea35df8c5c41f.png"
+    },
+    {
+      "_id": "68d1763d2709b36f4df3e0bb",
+      "sku": "P005",
+      "name": "Laptop Stand",
+      "price": 39.99,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 15,
+      "__v": 0
+    },
+    {
+      "_id": "68daa0190dd03ff83701b35b",
+      "sku": "LAP-HP-ELITE-15",
+      "name": "Api Endpoint",
+      "price": 20,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 20,
+      "imageUrl": "/uploads/products/978eccd3e79435b0acc52433cdff7240.png",
+      "__v": 0
+    },
+    {
+      "_id": "68dd17cfd7d2f39223d17502",
+      "sku": "LAP-HP-ELITE-15",
+      "name": "Api Endpoint1",
+      "price": 200,
+      "cost": 0,
+      "reorderLevel": 5,
+      "quantity": 30,
+      "imageUrl": "",
+      "__v": 0
+    }
+  ],
+  "users": [
+    {
+      "_id": "6872b5a524aab48618f31a22",
+      "username": "olet",
+      "password": "$2b$10$SDo3rOF7waH/cEUhveQD7O/b9/VAETosFIizB0SsZ7Rx.ucc8FAsG",
+      "role": "sales",
+      "__v": 0,
+      "lastLogin": "2025-07-20T19:03:57.119Z",
+      "email": "",
+      "preferences": {
+        "theme": "light",
+        "language": "en"
+      }
+    },
+    {
+      "_id": "6873ab45831543c37453a385",
+      "username": "olett",
+      "password": "$2b$10$Pw8LpWYluaYDJHfZbev9S.hHMBWJYAtGvJNrkPEsJe18qv.MO0M6C",
+      "role": "admin",
+      "__v": 0,
+      "lastLogin": "2025-07-13T19:40:45.418Z"
+    },
+    {
+      "_id": "6873aed05588e178e721aeb4",
+      "username": "maca",
+      "password": "$2b$10$rJ3L.7Nd6PnKjPj52K568.99IOg2Vazyj.H7UJiodVwJs3GC3XwL6",
+      "role": "sales",
+      "__v": 0,
+      "lastLogin": "2025-09-22T11:23:47.855Z"
+    },
+    {
+      "_id": "6873b0c37945fcc221d20489",
+      "username": "oletrt",
+      "password": "$2b$10$MoOw15f0tPmVe9LnKBhxdOSeLru20x8P0sdoJBPHJYSR2NRuQHwEi",
+      "role": "sales",
+      "__v": 0
+    },
+    {
+      "_id": "6873b3907945fcc221d2049a",
+      "username": "admin",
+      "password": "$2b$10$NS8ixjs6gtCVxXizMl4TheOB/.izyV/ASBZ5EKVRn2l/n7JvNWjsi",
+      "role": "sales",
+      "__v": 0
+    },
+    {
+      "_id": "6873ba497f6cd1927b5e79d0",
+      "username": "mem",
+      "password": "$2b$10$6r1zrO7uOfFSJnpwS/u45.LAhjQJoIoXX5OxVj8dLXiTJjWRvd2Pm",
+      "role": "sales",
+      "__v": 0
+    },
+    {
+      "_id": "68740b610e74103f5dfd3a71",
+      "username": "olettt",
+      "password": "$2b$10$9.ZJSk7i9rhVdodE/1UHwOuNly2pWBWwRqes5y3.XnWn2okK6.tzm",
+      "role": "sales",
+      "lastLogin": "2025-07-13T19:39:18.633Z",
+      "__v": 0
+    },
+    {
+      "_id": "687b7c802a4117a9aeeddcf8",
+      "username": "qen",
+      "password": "$2b$10$cnhQ9CBPB0SdZJk2g0WuIOJjo1gRf/arCUpJ0E3wfiEro7s4Pe5Am",
+      "role": "admin",
+      "lastLogin": "2025-07-20T15:58:43.266Z",
+      "__v": 0,
+      "email": "osharapolli123@gmail.com",
+      "preferences": {
+        "theme": "dark",
+        "language": "en"
+      }
+    },
+    {
+      "_id": "687d3cdf9ae45399590846e2",
+      "username": "Mema123",
+      "password": "$2b$10$Xw2hqZO/JVFSssm6qCFSped2crHVd3Qh/NaiWiRkkIY7y/2cgvzsW",
+      "role": "admin",
+      "lastLogin": "2025-07-20T19:01:01.659Z",
+      "__v": 0
+    },
+    {
+      "_id": "6897a1d4527036097b0b8648",
+      "username": "olet33",
+      "password": "$2b$10$pgGm1oj.IjGY66Xiosj6jOnqljh7hz/PA5x2i8y/4v7wjtXa7iB5m",
+      "role": "admin",
+      "lastLogin": "2025-09-30T10:40:29.579Z",
+      "__v": 0,
+      "email": "osharapolli123@gmail.com",
+      "preferences": {
+        "theme": "dark",
+        "language": "en"
+      }
+    },
+    {
+      "_id": "689dcaf074d0230eb9cfb68a",
+      "username": "maca1",
+      "password": "$2b$10$WPT34ZaC4fvHfBy1RNJDi.D9.rIbRmSm3cqTh3m.o7zU9joiaaYIS",
+      "role": "sales",
+      "lastLogin": "2025-08-15T13:57:53.376Z",
+      "__v": 0
+    },
+    {
+      "_id": "68b6e1acae3b210d611f5cba",
+      "username": "avdi",
+      "password": "$2b$10$4rt7.nqsYHeXyws0a.wlDe4AD4//FnD4aG0Dkqr7AeDuaZmvjVMRe",
+      "role": "sales",
+      "lastLogin": "2025-09-03T09:56:06.597Z",
+      "__v": 0
+    },
+    {
+      "_id": "68cfd2fb3ae71fe8881fbd83",
+      "username": "Olett",
+      "password": "$2b$10$f9BZzH.F3LE73V9/oC3ifOJY0775p3cmSUil0/KenOA0wAyNMNSsW",
+      "role": "sales",
+      "lastLogin": "2025-09-29T14:23:46.991Z",
+      "__v": 0
+    },
+    {
+      "_id": "68d5775cde04b625c9c05015",
+      "username": "Fatlume",
+      "password": "$2b$10$ZaAxK9NAO.ZwiLALdQrmnumaLqSBmntN9PkxeuFEvfhpKol7OTity",
+      "role": "sales",
+      "lastLogin": "2025-09-25T17:09:56.218Z",
+      "__v": 0
+    },
+    {
+      "_id": "68d9159789e20cc9bbee7555",
+      "username": "mema",
+      "password": "$2b$10$GxWeWDOE8mLYJfY1mwTl6OSbJdi/9fw/ARadZfxW3pNQveyES5qtK",
+      "role": "admin",
+      "lastLogin": "2025-09-28T11:01:55.567Z",
+      "__v": 0
+    },
+    {
+      "_id": "68da856dfbbb443eaaacec4e",
+      "username": "Olettt",
+      "password": "$2b$10$1.y5NPC5n1w51na1P7W9oOrSJgrl7pjztp7otkjFgfS0iZ8TPAiuu",
+      "role": "admin",
+      "lastLogin": "2025-09-29T13:19:38.079Z",
+      "__v": 0
+    }
+  ]
+}

@@ -9,7 +9,11 @@
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "backup:mongodb": "node scripts/backup-mongodb.js",
+    "backup:postgresql": "node scripts/backup-postgresql.js",
+    "backup:all": "node scripts/backup-all.js",
+    "backup:daily": "node scripts/scheduled-backup.js"
   },
   "keywords": [],
   "author": "",

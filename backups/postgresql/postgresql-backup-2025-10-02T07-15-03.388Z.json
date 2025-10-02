@@ -1,0 +1,268 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password_hash": "$2b$10$ulFNgXJvxTIcJZX7ifIs0OpjdCNymlxtwzBcbN2V58eN2ajq3kpuG",
+      "role": "admin",
+      "created_at": "2025-10-01T11:16:04.275Z",
+      "email": "admin@inventory.com",
+      "is_active": true,
+      "last_login": "2025-10-01T11:19:19.028Z",
+      "updated_at": "2025-10-01T11:16:04.275Z"
+    },
+    {
+      "id": 2,
+      "username": "olet",
+      "password_hash": "$2b$10$SDo3rOF7waH/cEUhveQD7O/b9/VAETosFIizB0SsZ7Rx.ucc8FAsG",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.668Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.669Z"
+    },
+    {
+      "id": 3,
+      "username": "olett",
+      "password_hash": "$2b$10$Pw8LpWYluaYDJHfZbev9S.hHMBWJYAtGvJNrkPEsJe18qv.MO0M6C",
+      "role": "admin",
+      "created_at": "2025-10-01T11:26:31.671Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.672Z"
+    },
+    {
+      "id": 4,
+      "username": "maca",
+      "password_hash": "$2b$10$rJ3L.7Nd6PnKjPj52K568.99IOg2Vazyj.H7UJiodVwJs3GC3XwL6",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.674Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.675Z"
+    },
+    {
+      "id": 5,
+      "username": "oletrt",
+      "password_hash": "$2b$10$MoOw15f0tPmVe9LnKBhxdOSeLru20x8P0sdoJBPHJYSR2NRuQHwEi",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.676Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.677Z"
+    },
+    {
+      "id": 6,
+      "username": "mem",
+      "password_hash": "$2b$10$6r1zrO7uOfFSJnpwS/u45.LAhjQJoIoXX5OxVj8dLXiTJjWRvd2Pm",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.686Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.687Z"
+    },
+    {
+      "id": 7,
+      "username": "olettt",
+      "password_hash": "$2b$10$9.ZJSk7i9rhVdodE/1UHwOuNly2pWBWwRqes5y3.XnWn2okK6.tzm",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.688Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.689Z"
+    },
+    {
+      "id": 8,
+      "username": "qen",
+      "password_hash": "$2b$10$cnhQ9CBPB0SdZJk2g0WuIOJjo1gRf/arCUpJ0E3wfiEro7s4Pe5Am",
+      "role": "admin",
+      "created_at": "2025-10-01T11:26:31.690Z",
+      "email": "osharapolli123@gmail.com",
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.691Z"
+    },
+    {
+      "id": 9,
+      "username": "Mema123",
+      "password_hash": "$2b$10$Xw2hqZO/JVFSssm6qCFSped2crHVd3Qh/NaiWiRkkIY7y/2cgvzsW",
+      "role": "admin",
+      "created_at": "2025-10-01T11:26:31.695Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.696Z"
+    },
+    {
+      "id": 11,
+      "username": "maca1",
+      "password_hash": "$2b$10$WPT34ZaC4fvHfBy1RNJDi.D9.rIbRmSm3cqTh3m.o7zU9joiaaYIS",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.702Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.705Z"
+    },
+    {
+      "id": 12,
+      "username": "avdi",
+      "password_hash": "$2b$10$4rt7.nqsYHeXyws0a.wlDe4AD4//FnD4aG0Dkqr7AeDuaZmvjVMRe",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.710Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.711Z"
+    },
+    {
+      "id": 14,
+      "username": "Fatlume",
+      "password_hash": "$2b$10$ZaAxK9NAO.ZwiLALdQrmnumaLqSBmntN9PkxeuFEvfhpKol7OTity",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.726Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.727Z"
+    },
+    {
+      "id": 15,
+      "username": "mema",
+      "password_hash": "$2b$10$GxWeWDOE8mLYJfY1mwTl6OSbJdi/9fw/ARadZfxW3pNQveyES5qtK",
+      "role": "admin",
+      "created_at": "2025-10-01T11:26:31.729Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.729Z"
+    },
+    {
+      "id": 16,
+      "username": "Olettt",
+      "password_hash": "$2b$10$1.y5NPC5n1w51na1P7W9oOrSJgrl7pjztp7otkjFgfS0iZ8TPAiuu",
+      "role": "admin",
+      "created_at": "2025-10-01T11:26:31.730Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T11:26:31.731Z"
+    },
+    {
+      "id": 17,
+      "username": "Erisa",
+      "password_hash": "$2b$10$UsbGW0TNIz9NCDPEyNYvuevLpKaf0anpB5N6jmN1EGxamoz0tOWiG",
+      "role": "admin",
+      "created_at": "2025-10-01T11:33:16.052Z",
+      "email": null,
+      "is_active": true,
+      "last_login": "2025-10-01T12:24:14.582Z",
+      "updated_at": "2025-10-01T11:33:16.052Z"
+    },
+    {
+      "id": 13,
+      "username": "Olett",
+      "password_hash": "$2b$10$f9BZzH.F3LE73V9/oC3ifOJY0775p3cmSUil0/KenOA0wAyNMNSsW",
+      "role": "sales",
+      "created_at": "2025-10-01T11:26:31.719Z",
+      "email": null,
+      "is_active": true,
+      "last_login": "2025-10-01T12:24:20.730Z",
+      "updated_at": "2025-10-01T11:26:31.720Z"
+    },
+    {
+      "id": 10,
+      "username": "olet33",
+      "password_hash": "$2b$10$pgGm1oj.IjGY66Xiosj6jOnqljh7hz/PA5x2i8y/4v7wjtXa7iB5m",
+      "role": "admin",
+      "created_at": "2025-10-01T11:26:31.699Z",
+      "email": "osharapolli123@gmail.com",
+      "is_active": true,
+      "last_login": "2025-10-01T12:47:06.739Z",
+      "updated_at": "2025-10-01T11:26:31.701Z"
+    },
+    {
+      "id": 18,
+      "username": "alice",
+      "password_hash": "$2b$10$HaISUagxLHfd6XUVyQpy/.O5/QGt8qiWs2TYuj43Xhdx0F1HlrZ72",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:45.550Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:45.551Z"
+    },
+    {
+      "id": 19,
+      "username": "bob",
+      "password_hash": "$2b$10$rgXQzBoz.gBnosdGZy6wdezJQr11kCpo6r4Kdzwx6AI6eMaMUz0Na",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:45.649Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:45.650Z"
+    },
+    {
+      "id": 20,
+      "username": "seller-multi",
+      "password_hash": "$2b$10$NnYwIDnyPYfc4ZNe/BtwEelGn6kvs80CpJW2QQdYdMvfDvdHOHUT2",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:46.687Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:46.687Z"
+    },
+    {
+      "id": 21,
+      "username": "seller-insufficient",
+      "password_hash": "$2b$10$BD9xKB8ZJmJJ//Q4r2rx5eF18iv4B9Ux0QJWQjwZRayGry1zVNv06",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:46.819Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:46.820Z"
+    },
+    {
+      "id": 22,
+      "username": "seller-merge",
+      "password_hash": "$2b$10$jnXc2bXYLbIIPYLiplPxh.3BNCREnala4BH2T/ltgawKWuH84g/jy",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:46.921Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:46.922Z"
+    },
+    {
+      "id": 23,
+      "username": "testuser",
+      "password_hash": "$2b$10$d8Sr0KRyaaEvYOGuOwUfL.uze28QfZCc2jmC4yrEw7HVP93ZcMJNu",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:48.876Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:48.877Z"
+    },
+    {
+      "id": 24,
+      "username": "seller-x",
+      "password_hash": "$2b$10$88gxZs9PrhR9qBmFDtFZJOaLSgJ8qyOOppzuuyAho8ZDeKFbsvES2",
+      "role": "sales",
+      "created_at": "2025-10-01T14:57:51.027Z",
+      "email": null,
+      "is_active": true,
+      "last_login": null,
+      "updated_at": "2025-10-01T14:57:51.028Z"
+    }
+  ]
+}
