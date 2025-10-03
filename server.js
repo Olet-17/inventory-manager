@@ -19,18 +19,8 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 // Database connection
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
 
-// Import SQL connection - FIXED IMPORT
+// Import SQL connection
 const { sqlPool, initializeTables } = require("./db/sql");
-
-// Initialize both databases
-async function initializeDatabases() {
-  try {
-    await initializeTables();
-    console.log("🎯 Dual Database System: MongoDB + PostgreSQL READY!");
-  } catch (error) {
-    console.error("Database initialization failed:", error);
-  }
-}
 
 // Import models FIRST (before routes that use them)
 const Sale = require("./models/Sale");
@@ -81,6 +71,77 @@ app.get("/api/dual-test", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// 🔥 ADD THIS: Test API endpoints for Cypress E2E testing
+if (process.env.NODE_ENV !== "production") {
+  // Test reset endpoint - clears all data and creates test users
+  app.post("/api/test/reset", async (req, res) => {
+    try {
+      console.log("🔄 Cypress test database reset requested");
+
+      // Clear MongoDB collections
+      const collections = mongoose.connection.collections;
+      for (const key in collections) {
+        await collections[key].deleteMany();
+        console.log(`🗑️ Cleared MongoDB collection: ${key}`);
+      }
+
+      // Clear PostgreSQL users table
+      await sqlPool.query("TRUNCATE users RESTART IDENTITY CASCADE");
+      console.log("🗑️ Cleared PostgreSQL users table");
+
+      // Create test admin user for E2E tests
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      await sqlPool.query(
+        `INSERT INTO users (username, password_hash, role, email, created_at) 
+         VALUES ($1, $2, $3, $4, $5)`,
+        ["admin", hashedPassword, "admin", "admin@test.com", new Date()],
+      );
+      console.log("👤 Created test admin user");
+
+      // Create test products in MongoDB
+      await Product.create([
+        {
+          sku: "TEST-001",
+          name: "Test Product 1",
+          price: 29.99,
+          cost: 15.0,
+          quantity: 100,
+        },
+        {
+          sku: "TEST-002",
+          name: "Test Product 2",
+          price: 49.99,
+          cost: 25.0,
+          quantity: 50,
+        },
+      ]);
+      console.log("📦 Created test products");
+
+      res.json({
+        success: true,
+        message: "Test database reset successfully",
+        adminUser: { username: "admin", password: "admin123", role: "admin" },
+      });
+    } catch (error) {
+      console.error("❌ Test reset error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Database reset failed: " + error.message,
+      });
+    }
+  });
+
+  // Test health check endpoint
+  app.get("/api/test/health", (req, res) => {
+    res.json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+    });
+  });
+}
 
 // Helper functions for daily summaries
 const toMoney = (n) => Number(n || 0).toFixed(2);
@@ -226,7 +287,8 @@ async function start() {
     console.log("[DB] connected:", MONGO_URI);
 
     // Initialize both databases
-    await initializeDatabases();
+    await initializeTables();
+    console.log("🎯 Dual Database System: MongoDB + PostgreSQL READY!");
 
     if (!isTest) {
       const PORT = process.env.PORT || 5000;

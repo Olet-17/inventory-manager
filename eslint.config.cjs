@@ -10,8 +10,8 @@ module.exports = [
       "server.js",
       "routes/**",
       "models/**",
-      "db/**", // ← Add this
-      "scripts/**", // ← Add this
+      "db/**",
+      "scripts/**",
       "*.config.cjs",
       "*.config.js",
     ],
@@ -23,7 +23,7 @@ module.exports = [
       },
     },
     rules: {
-      quotes: ["warn", "double"], // Your config uses double quotes
+      quotes: ["warn", "double"],
       semi: ["error", "always"],
       "no-unused-vars": [
         "warn",
@@ -53,6 +53,28 @@ module.exports = [
     },
   },
 
+  // --- Cypress tests ---
+  {
+    files: ["cypress/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+        ...globals.mocha, // Adds describe, it, beforeEach, etc.
+        cy: "readonly",
+        Cypress: "readonly",
+        expect: "readonly",
+        assert: "readonly",
+      },
+    },
+    rules: {
+      "no-console": "off",
+      "no-unused-vars": "warn",
+      quotes: ["warn", "double"],
+    },
+  },
+
   // --- Jest tests ---
   {
     files: ["tests/**/*.js"],
@@ -66,7 +88,6 @@ module.exports = [
     },
     rules: {
       "no-console": "off",
-      "no-unused-vars": "warn", // Change to warn for tests
     },
   },
 ];

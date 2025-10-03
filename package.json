@@ -13,7 +13,11 @@
     "backup:mongodb": "node scripts/backup-mongodb.js",
     "backup:postgresql": "node scripts/backup-postgresql.js",
     "backup:all": "node scripts/backup-all.js",
-    "backup:daily": "node scripts/scheduled-backup.js"
+    "backup:daily": "node scripts/scheduled-backup.js",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "npm run cypress:run",
+    "test:all": "npm test && npm run test:e2e"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +41,7 @@
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "cypress": "^15.3.0",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",

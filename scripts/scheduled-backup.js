@@ -7,7 +7,7 @@ cron.schedule(
   () => {
     console.log("🕒 Running scheduled database backup...");
 
-    exec("npm run backup:all", (error, stdout, stderr) => {
+    exec("npm run backup:all", (error, stdout, _stderr) => {
       if (error) {
         console.error("❌ Scheduled backup failed:", error);
         // Could add email/notification here
