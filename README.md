@@ -93,4 +93,4 @@ For questions or feedback, please open an issue or reach out to [Olet-17](https:
 
 ---
 
-*Inventory Manager - Simplifying inventory management for everyone.*
+_Inventory Manager - Simplifying inventory management for everyone._
