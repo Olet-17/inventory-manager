@@ -1,70 +1,88 @@
 console.log("✅ login.js is loaded and running");
-console.log("🟢 PostgreSQL AUTH ACTIVE");
+console.log("🟢 Session-based AUTH ACTIVE");
 
 const form = document.getElementById("loginForm");
+const msg = document.getElementById("message");
+const usernameEl = document.getElementById("username");
+const passwordEl = document.getElementById("password");
+
 if (!form) {
   console.error("❌ loginForm NOT FOUND in DOM!");
-} else {
-  console.log("✅ loginForm FOUND - Ready for PostgreSQL auth");
 }
 
-document.getElementById("loginForm").addEventListener("submit", async function (e) {
+function showMsg(text, kind = "error") {
+  if (!msg) return;
+  msg.textContent = text || "";
+  msg.classList.remove("error", "success");
+  msg.classList.add(kind);
+  // fallback colors if no CSS classes defined
+  if (!msg.classList.contains("error") && !msg.classList.contains("success")) {
+    msg.style.color = kind === "success" ? "#22c55e" : "#ef4444";
+  }
+}
+
+async function safeJson(resp) {
+  try {
+    return await resp.json();
+  } catch {
+    return null;
+  }
+}
+
+form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value;
-  const msg = document.getElementById("message");
+  const username = usernameEl?.value.trim();
+  const password = passwordEl?.value || "";
+
+  if (!username || !password) {
+    showMsg("Please enter username and password.", "error");
+    return;
+  }
+
+  const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
 
   try {
-    // ✅ CHANGED: Now using PostgreSQL auth endpoint
-    const res = await fetch("/api/auth-sql/login-sql", {
+    // 1) Login -> sets httpOnly session cookie
+    const loginResp = await fetch("/api/auth-sql/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // <-- IMPORTANT: send/receive cookie
       body: JSON.stringify({ username, password }),
     });
+    const loginData = await safeJson(loginResp);
 
-    const data = await res.json();
-    console.log("🔍 PostgreSQL Login response:", data);
-
-    if (res.ok && data.user?.id) {
-      // ✅ Save to localStorage
-      localStorage.setItem("userId", data.user.id);
-      localStorage.setItem("userRole", data.user.role);
-      localStorage.setItem("username", data.user.username);
-
-      console.log("✅ DEBUG: Saved user data to localStorage:", {
-        id: data.user.id,
-        role: data.user.role,
-        username: data.user.username,
-      });
-
-      // Verify storage
-      const verifyId = localStorage.getItem("userId");
-      console.log("🔍 DEBUG: Verified userId in storage:", verifyId);
-
-      if (verifyId === data.user.id.toString()) {
-        console.log("✅ DEBUG: PostgreSQL auth storage verification PASSED");
-        msg.textContent = "Login successful! (PostgreSQL)";
-        msg.style.color = "green";
-
-        setTimeout(() => {
-          console.log("🔍 DEBUG: Redirecting to dashboard...");
-          window.location.href = "/html/dashboard.html";
-        }, 1000);
-      } else {
-        console.error("❌ DEBUG: Storage verification FAILED");
-        msg.textContent = "Login failed - session error";
-        msg.style.color = "red";
-      }
-    } else {
-      msg.textContent = data.error || "Login failed";
-      msg.style.color = "red";
+    if (!loginResp.ok || !loginData?.success) {
+      showMsg(loginData?.error || "Login failed.", "error");
+      return;
     }
-  } catch (error) {
-    console.error("PostgreSQL Login error:", error);
-    msg.textContent = "An unexpected error occurred.";
-    msg.style.color = "red";
+
+    // 2) Verify session and get role
+    const meResp = await fetch("/api/auth-sql/me", { credentials: "include" });
+    const meData = await safeJson(meResp);
+
+    if (!meResp.ok || !meData?.user) {
+      showMsg("Session error after login. Please try again.", "error");
+      return;
+    }
+
+    const role = String(meData.user.role || "").toLowerCase();
+
+    showMsg("Login successful!", "success");
+
+    // 3) Redirect by role (tweak to your preference)
+    setTimeout(() => {
+      if (role === "admin") {
+        window.location.href = "/html/dashboard.html";
+      } else {
+        window.location.href = "/html/sales.html";
+      }
+    }, 400);
+  } catch (err) {
+    console.error("Login error:", err);
+    showMsg("Unexpected error. Please try again.", "error");
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 });

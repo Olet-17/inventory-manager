@@ -4,19 +4,27 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
 const cron = require("node-cron");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 dotenv.config();
 
 const isTest = process.env.NODE_ENV === "test";
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// ---------- Security & core middleware ----------
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // keep off if you use inline scripts; tighten later
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+app.use(cors({ origin: true, credentials: true })); // allow cookies/cross-origin
+app.use(express.json({ limit: "200kb" })); // sane JSON body limit
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
-// Database connection
+// ---------- Database connection ----------
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/inventoryDB";
 
 // Import SQL connection
@@ -27,7 +35,50 @@ const Sale = require("./models/Sale");
 const Product = require("./models/Product");
 const User = require("./models/User");
 
-// Import routes
+// ---------- Sessions (Postgres store) ----------
+const session = require("express-session");
+const PgStore = require("connect-pg-simple")(session);
+
+app.use(
+  session({
+    store: new PgStore({
+      pool: sqlPool,
+      tableName: "user_sessions",
+      createTableIfMissing: true,
+      // schemaName: "public",
+    }),
+    name: "sid",
+    secret: process.env.SESSION_SECRET || "super-secret-session-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 8, // 8 hours
+    },
+  }),
+);
+
+// ---------- Rate limits (apply AFTER session, BEFORE routes) ----------
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 300, // 300 req/min/IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 attempts/15m/IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api", apiLimiter);
+app.use("/api/auth-sql/login", authLimiter);
+app.use("/api/auth-sql/register", authLimiter); // throttle signup too
+
+// ---------- Routes ----------
 const authRoutes = require("./routes/auth");
 const authSqlRoutes = require("./routes/auth-sql");
 const productRoutes = require("./routes/products");
@@ -52,7 +103,7 @@ app.use("/api/upload", uploadRoutes);
 // Search route
 app.get("/api/search", require("./routes/search"));
 
-// Dual Database Test Route
+// ---------- Dual Database Test Route ----------
 app.get("/api/dual-test", async (req, res) => {
   try {
     // MongoDB query
@@ -72,9 +123,8 @@ app.get("/api/dual-test", async (req, res) => {
   }
 });
 
-// 🔥 ADD THIS: Test API endpoints for Cypress E2E testing
+// ---------- Test helpers (non-production) ----------
 if (process.env.NODE_ENV !== "production") {
-  // Test reset endpoint - clears all data and creates test users
   app.post("/api/test/reset", async (req, res) => {
     try {
       console.log("🔄 Cypress test database reset requested");
@@ -102,20 +152,8 @@ if (process.env.NODE_ENV !== "production") {
 
       // Create test products in MongoDB
       await Product.create([
-        {
-          sku: "TEST-001",
-          name: "Test Product 1",
-          price: 29.99,
-          cost: 15.0,
-          quantity: 100,
-        },
-        {
-          sku: "TEST-002",
-          name: "Test Product 2",
-          price: 49.99,
-          cost: 25.0,
-          quantity: 50,
-        },
+        { sku: "TEST-001", name: "Test Product 1", price: 29.99, cost: 15.0, quantity: 100 },
+        { sku: "TEST-002", name: "Test Product 2", price: 49.99, cost: 25.0, quantity: 50 },
       ]);
       console.log("📦 Created test products");
 
@@ -126,14 +164,10 @@ if (process.env.NODE_ENV !== "production") {
       });
     } catch (error) {
       console.error("❌ Test reset error:", error);
-      res.status(500).json({
-        success: false,
-        error: "Database reset failed: " + error.message,
-      });
+      res.status(500).json({ success: false, error: "Database reset failed: " + error.message });
     }
   });
 
-  // Test health check endpoint
   app.get("/api/test/health", (req, res) => {
     res.json({
       status: "healthy",
@@ -143,7 +177,7 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-// Helper functions for daily summaries
+// ---------- Daily summary helpers ----------
 const toMoney = (n) => Number(n || 0).toFixed(2);
 
 function startOfToday() {
@@ -183,9 +217,7 @@ async function composeDailySummary() {
   const topSellerEntry = Object.entries(bySeller).sort((a, b) => b[1] - a[1])[0];
   const topSeller = topSellerEntry ? { user: topSellerEntry[0], revenue: topSellerEntry[1] } : null;
 
-  const lowStockCount = await Product.countDocuments({
-    quantity: { $lt: 5 }, // LOW_STOCK_THRESHOLD
-  });
+  const lowStockCount = await Product.countDocuments({ quantity: { $lt: 5 } });
 
   return {
     orders,
@@ -201,7 +233,6 @@ async function composeDailySummary() {
 async function sendDailySummaryNow() {
   const s = await composeDailySummary();
 
-  // Post to Discord if webhook exists
   if (process.env.DISCORD_WEBHOOK_URL) {
     const text =
       "**Daily Sales**\n" +
@@ -222,7 +253,7 @@ async function sendDailySummaryNow() {
 }
 
 // Daily summary routes
-app.get("/api/admin/summary/preview", async (req, res) => {
+app.get("/api/admin/summary/preview", async (_req, res) => {
   try {
     const s = await composeDailySummary();
     res.json(s);
@@ -232,14 +263,12 @@ app.get("/api/admin/summary/preview", async (req, res) => {
   }
 });
 
-app.post("/api/admin/summary/send-now", async (req, res) => {
+app.post("/api/admin/summary/send-now", async (_req, res) => {
   try {
     if (!process.env.DISCORD_WEBHOOK_URL) {
       return res.status(500).json({ error: "Missing DISCORD_WEBHOOK_URL in .env" });
     }
-
     const summary = await sendDailySummaryNow();
-
     res.json({ ok: true, sent: summary });
   } catch (e) {
     console.error("send-now error:", e);
@@ -252,7 +281,6 @@ const DAILY_SUMMARY_CRON = process.env.DAILY_SUMMARY_CRON || "0 18 * * *";
 
 if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
   const TIMEZONE = process.env.TZ || "UTC";
-
   try {
     cron.schedule(
       DAILY_SUMMARY_CRON,
@@ -267,7 +295,6 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
       },
       { timezone: TIMEZONE },
     );
-
     global.__SUMMARY_JOB_STARTED__ = true;
     console.log(`[summary] Scheduler ready. CRON="${DAILY_SUMMARY_CRON}" TZ="${TIMEZONE}"`);
   } catch (e) {
@@ -276,17 +303,16 @@ if (!isTest && !global.__SUMMARY_JOB_STARTED__) {
 }
 
 // Root route
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.redirect("/html/login.html");
 });
 
-// Start server
+// ---------- Start server ----------
 async function start() {
   try {
     await mongoose.connect(MONGO_URI);
     console.log("[DB] connected:", MONGO_URI);
 
-    // Initialize both databases
     await initializeTables();
     console.log("🎯 Dual Database System: MongoDB + PostgreSQL READY!");
 

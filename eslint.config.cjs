@@ -11,6 +11,7 @@ module.exports = [
       "routes/**",
       "models/**",
       "db/**",
+      "validators/**",
       "scripts/**",
       "*.config.cjs",
       "*.config.js",

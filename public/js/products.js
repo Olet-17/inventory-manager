@@ -18,9 +18,44 @@ const uploadSection = document.getElementById("imageUploadSection");
 let productsCache = [];
 let currentProductId = null;
 
+// ===== UTIL: message + escape =====
+function showMessage(text, kind = "success") {
+  if (!messageEl) return;
+  messageEl.textContent = text || "";
+  messageEl.classList.remove("success", "error");
+  messageEl.classList.add(kind); // expects .success/.error in CSS
+  messageEl.style.display = text ? "block" : "none";
+}
+const escapeHtml = (s) =>
+  String(s ?? "").replace(
+    /[&<>"']/g,
+    (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m],
+  );
+
+// ===== UTIL: centralized fetch with credentials + auth handling =====
+async function apiFetch(url, options = {}) {
+  const res = await fetch(url, { credentials: "include", ...options });
+  // If not authenticated/authorized, bounce to login
+  if (res.status === 401 || res.status === 403) {
+    // Optional: show a quick message before redirect
+    try {
+      const err = await res.json();
+      console.warn("Auth error:", err);
+    } catch {}
+    window.location.href = "/html/login.html";
+    throw new Error(`Auth required (${res.status})`);
+  }
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // leave as null, caller can handle
+  }
+  return { res, data };
+}
+
 // ===== LIGHTBOX (create once) =====
 function ensureImageModal() {
-  // If a modal exists but has no close button, or you want a fresh one, remove it.
   const old = document.getElementById("imageModal");
   if (old) old.remove();
 
@@ -32,7 +67,6 @@ function ensureImageModal() {
     display:flex; justify-content:center; align-items:center;
   `;
 
-  // Close button in the overlay (top-right)
   const closeBtn = document.createElement("button");
   closeBtn.id = "imageModalClose";
   closeBtn.setAttribute("aria-label", "Close");
@@ -71,23 +105,19 @@ function ensureImageModal() {
   modal.appendChild(img);
   document.body.appendChild(modal);
 
-  // Close if background clicked (not the image or the button)
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.style.display = "none";
   });
-  // Close on Escape
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") modal.style.display = "none";
   });
 }
-
-// ===== OPEN MODAL =====
 function openImageModal(src) {
   ensureImageModal();
   const modal = document.getElementById("imageModal");
   const modalImg = document.getElementById("modalImg");
   modalImg.src = src;
-  modal.style.display = "flex"; // flex so image stays centered
+  modal.style.display = "flex";
 }
 
 // ===== HELPERS =====
@@ -125,7 +155,6 @@ function renderProductTable(items) {
       img.style.borderRadius = "6px";
       img.style.objectFit = "cover";
       img.style.cursor = "pointer";
-      // 🔍 click to open modal
       img.addEventListener("click", () => openImageModal(p.imageUrl));
       tdImg.appendChild(img);
     } else {
@@ -157,7 +186,6 @@ function renderProductTable(items) {
     });
     tdActions.appendChild(selectBtn);
 
-    // (optional) Delete button
     const delBtn = document.createElement("button");
     delBtn.textContent = "Delete";
     delBtn.style.marginLeft = "8px";
@@ -173,11 +201,64 @@ function renderProductTable(items) {
   });
 }
 
+// Append a single product row (no full re-render)
+function appendProductRow(p) {
+  const tbody = document.querySelector("#productTable tbody");
+  if (!tbody || !p) return;
+
+  const tr = document.createElement("tr");
+
+  const tdImg = document.createElement("td");
+  if (p.imageUrl) {
+    const img = document.createElement("img");
+    img.src = p.imageUrl;
+    img.alt = "product";
+    img.style.maxWidth = "70px";
+    img.style.maxHeight = "70px";
+    img.style.borderRadius = "6px";
+    img.style.objectFit = "cover";
+    img.style.cursor = "pointer";
+    img.addEventListener("click", () => openImageModal(p.imageUrl));
+    tdImg.appendChild(img);
+  } else {
+    tdImg.textContent = "—";
+  }
+
+  const tdName = document.createElement("td");
+  tdName.textContent = escapeHtml(p.name);
+  const tdPrice = document.createElement("td");
+  tdPrice.textContent = String(p.price ?? 0);
+  const tdQty = document.createElement("td");
+  tdQty.textContent = String(p.quantity ?? 0);
+
+  const tdActions = document.createElement("td");
+  const selectBtn = document.createElement("button");
+  selectBtn.textContent = "Select";
+  selectBtn.addEventListener("click", () => {
+    setCurrentProduct(p._id);
+    if (p.imageUrl) {
+      previewImg.src = p.imageUrl;
+      previewImg.style.display = "block";
+    } else {
+      previewImg.style.display = "none";
+    }
+    uploadMsg.textContent = "";
+    uploadSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "Delete";
+  delBtn.style.marginLeft = "8px";
+  delBtn.addEventListener("click", () => deleteProduct(p._id));
+  tdActions.append(selectBtn, delBtn);
+
+  tr.append(tdImg, tdName, tdPrice, tdQty, tdActions);
+  tbody.prepend(tr); // newest first
+}
+
+// ===== DATA =====
 async function fetchProducts() {
-  const res = await fetch("/api/products");
-  const data = await res.json();
-  // support either array or { products: [...] }
-  return Array.isArray(data) ? data : data.products || [];
+  const { data } = await apiFetch("/api/products");
+  return Array.isArray(data) ? data : data?.products || [];
 }
 
 async function loadProducts() {
@@ -187,27 +268,14 @@ async function loadProducts() {
   if (productsCache[0]) setCurrentProduct(productsCache[0]._id);
 }
 
-// ===== BOOT =====
+// ===== BOOT (require auth via session) =====
 window.addEventListener("DOMContentLoaded", async () => {
-  // ✅ FIXED: Check authentication first
-  const userId = localStorage.getItem("userId");
-  if (!userId) {
-    window.location.href = "/html/login.html";
-    return;
-  }
-
-  // ✅ CHANGED: Use PostgreSQL auth endpoint
   try {
-    const userRes = await fetch("/api/auth-sql/user-info", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: userId }),
-    });
-
-    const userData = await userRes.json();
-
-    // ✅ CHANGED: Check userData.user.role (PostgreSQL format)
-    if (!userData.user || userData.user.role !== "admin") {
+    // 🔒 Ask the server who we are (session-based)
+    const { res, data } = await apiFetch("/api/auth-sql/me", { method: "GET" });
+    // if 401/403, apiFetch already redirected
+    const role = String(data?.user?.role || "").toLowerCase();
+    if (role !== "admin") {
       notAdmin.style.display = "block";
       return;
     }
@@ -215,12 +283,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     productSection.style.display = "block";
     await loadProducts();
   } catch (error) {
-    console.error("Authentication error:", error);
+    console.error("Auth/boot error:", error);
     notAdmin.style.display = "block";
   }
 });
 
-// ===== FORM: Add product =====
+// ===== FORM: Add product (append row, no reload) =====
 productForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -229,50 +297,61 @@ productForm?.addEventListener("submit", async (e) => {
   const price = parseFloat(document.getElementById("price").value);
   const quantity = parseInt(document.getElementById("quantity").value, 10);
 
-  // Add validation for SKU
-  if (!sku) {
-    messageEl.textContent = "SKU is required";
-    messageEl.style.color = "red";
+  if (
+    !name ||
+    !sku ||
+    !Number.isFinite(price) ||
+    price < 0 ||
+    !Number.isInteger(quantity) ||
+    quantity < 0
+  ) {
+    showMessage("Please fill all fields correctly.", "error");
     return;
   }
 
+  const submitBtn = productForm.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
+
   try {
-    const res = await fetch("/api/products", {
+    const { res, data } = await apiFetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, sku, price, quantity }),
     });
-    const data = await res.json();
 
     if (!res.ok) {
-      messageEl.textContent = data.error || "Failed to add product";
-      messageEl.style.color = "red";
+      showMessage(data?.error || "Failed to add product", "error");
       return;
     }
 
-    const created = data.product || data;
+    const created = data?.product || data;
     if (!created || !created._id) {
-      messageEl.textContent = "Product created, but server did not return an _id";
-      messageEl.style.color = "orange";
+      showMessage("Product created, but server did not return an _id", "error");
     }
 
     productsCache.unshift(created);
-    renderProductTable(productsCache);
-    populateProductSelect(productsCache);
+    appendProductRow(created);
+
+    if (productSelect) {
+      const opt = document.createElement("option");
+      opt.value = created._id;
+      opt.textContent = `${created.name} (${created.sku || "no sku"})`;
+      productSelect.prepend(opt);
+    }
 
     setCurrentProduct(created._id);
     previewImg.style.display = "none";
     uploadMsg.textContent = "";
 
-    messageEl.textContent = "✅ Product added";
-    messageEl.style.color = "green";
+    showMessage("✅ Product added", "success");
     productForm.reset();
 
     uploadSection.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
     console.error("Add error:", err);
-    messageEl.textContent = "Server error";
-    messageEl.style.color = "red";
+    showMessage("Server error", "error");
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 });
 
@@ -315,18 +394,17 @@ uploadBtn?.addEventListener("click", async () => {
   fd.append("image", f);
 
   try {
-    const resp = await fetch(`/api/upload/products/${currentProductId}/image`, {
+    const { res, data } = await apiFetch(`/api/upload/products/${currentProductId}/image`, {
       method: "POST",
       body: fd,
     });
-    const data = await resp.json();
-    if (!resp.ok) {
+
+    if (!res.ok) {
       uploadMsg.style.color = "red";
-      uploadMsg.textContent = data.error || "Upload failed";
+      uploadMsg.textContent = data?.error || "Upload failed";
       return;
     }
 
-    // update cache + UI
     const idx = productsCache.findIndex((p) => p._id === currentProductId);
     if (idx >= 0) productsCache[idx].imageUrl = data.imageUrl;
 
@@ -346,20 +424,19 @@ uploadBtn?.addEventListener("click", async () => {
 async function deleteProduct(id) {
   if (!confirm("Are you sure?")) return;
   try {
-    const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
-    const data = await res.json();
-    if (res.ok) {
-      productsCache = productsCache.filter((p) => p._id !== id);
-      renderProductTable(productsCache);
-      populateProductSelect(productsCache);
-      if (currentProductId === id) {
-        setCurrentProduct(productsCache[0]?._id || null);
-        previewImg.style.display = "none";
-      }
-      alert("Deleted ✅");
-    } else {
-      alert(data.error || "Failed to delete");
+    const { res, data } = await apiFetch(`/api/products/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert(data?.error || "Failed to delete");
+      return;
     }
+    productsCache = productsCache.filter((p) => p._id !== id);
+    renderProductTable(productsCache);
+    populateProductSelect(productsCache);
+    if (currentProductId === id) {
+      setCurrentProduct(productsCache[0]?._id || null);
+      previewImg.style.display = "none";
+    }
+    alert("Deleted ✅");
   } catch (err) {
     console.error("Delete error:", err);
     alert("Server error");

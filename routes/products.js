@@ -2,177 +2,123 @@ const express = require("express");
 const Product = require("../models/Product");
 const { parse } = require("csv-parse/sync");
 const multer = require("multer");
-const router = express.Router();
+const Joi = require("joi");
+const rateLimit = require("express-rate-limit");
 
+const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+/* ---------------------- Validation Schemas ---------------------- */
+const productSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  sku: Joi.string().alphanum().min(2).max(30).required(),
+  price: Joi.number().min(0).required(),
+  cost: Joi.number().min(0).optional(),
+  quantity: Joi.number().integer().min(0).optional(),
+  reorderLevel: Joi.number().integer().min(0).optional(),
+});
+
+const updateSchema = Joi.object({
+  name: Joi.string().min(2).max(100).optional(),
+  sku: Joi.string().alphanum().min(2).max(30).optional(),
+  price: Joi.number().min(0).optional(),
+  cost: Joi.number().min(0).optional(),
+  quantity: Joi.number().integer().min(0).optional(),
+  reorderLevel: Joi.number().integer().min(0).optional(),
+});
+
+/* ---------------------- Rate Limiters ---------------------- */
+// Limit creation/deletion to 20 per 15 minutes per IP
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: "Too many product changes, slow down." },
+});
+
+/* ---------------------- Routes ---------------------- */
+
 // Get all products
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   const products = await Product.find();
   res.json(products);
 });
 
-// Create product - FIXED: Added SKU validation
-router.post("/", async (req, res) => {
+// Create product (with validation)
+router.post("/", writeLimiter, async (req, res) => {
   try {
-    const { name, price, unitPrice, cost, unitCost, quantity, sku, reorderLevel } = req.body;
+    const { error, value } = productSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-    if (!name) return res.status(400).json({ error: "Name is required" });
-    if (!sku) return res.status(400).json({ error: "SKU is required" }); // Added SKU validation
+    const exists = await Product.findOne({ sku: value.sku });
+    if (exists) return res.status(400).json({ error: "SKU already exists" });
 
-    const finalPrice =
-      typeof unitPrice === "number" ? unitPrice : typeof price === "number" ? price : 0;
-    const finalCost = typeof unitCost === "number" ? unitCost : typeof cost === "number" ? cost : 0;
-
-    const doc = await new Product({
-      name,
-      price: finalPrice,
-      unitPrice: finalPrice,
-      cost: finalCost,
-      unitCost: finalCost,
-      quantity: Number(quantity ?? 0),
-      sku, // Now this will always have a value
-      reorderLevel: Number(reorderLevel ?? 5),
-    }).save();
-
-    return res.status(201).json(doc);
+    const product = await Product.create(value);
+    res.status(201).json({ message: "Product created", product });
   } catch (err) {
-    console.error("[POST /api/products] failed:", err);
-
-    // More specific error handling
-    if (err.name === "ValidationError") {
-      const errors = Object.values(err.errors).map((e) => e.message);
-      return res.status(400).json({ error: errors.join(", ") });
-    }
-
-    // Handle duplicate SKU errors
-    if (err.code === 11000) {
-      return res.status(400).json({ error: "SKU already exists" });
-    }
-
-    return res.status(500).json({ error: "Failed to add product" });
+    console.error("[POST /products] error:", err);
+    res.status(500).json({ error: "Failed to add product" });
   }
 });
 
-// Update product - FIXED: Added SKU handling
-router.put("/:id", async (req, res) => {
+// Update product
+router.put("/:id", writeLimiter, async (req, res) => {
   try {
-    const { name, price, quantity, sku } = req.body; // Added sku
-    const updateData = { name, price, quantity };
+    const { error, value } = updateSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-    // Only include sku if provided
-    if (sku !== undefined) {
-      updateData.sku = sku;
-    }
-
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }, // Added runValidators
-    );
-    if (!updatedProduct) return res.status(404).json({ error: "Product not found" });
-    res.json({
-      message: "Product updated successfully",
-      product: updatedProduct,
+    const updated = await Product.findByIdAndUpdate(req.params.id, value, {
+      new: true,
+      runValidators: true,
     });
+    if (!updated) return res.status(404).json({ error: "Product not found" });
+    res.json({ message: "Product updated", product: updated });
   } catch (err) {
-    console.error("[PUT /api/products/:id] failed:", err);
-
-    // Handle validation errors for updates too
-    if (err.name === "ValidationError") {
-      const errors = Object.values(err.errors).map((e) => e.message);
-      return res.status(400).json({ error: errors.join(", ") });
-    }
-
+    console.error("[PUT /products/:id] error:", err);
     res.status(500).json({ error: "Failed to update product" });
   }
 });
 
-// Delete product (unchanged)
-router.delete("/:id", async (req, res) => {
+// Delete product
+router.delete("/:id", writeLimiter, async (req, res) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-    if (!deletedProduct) return res.status(404).json({ error: "Product not found" });
-    res.json({ message: "Product deleted successfully" });
+    const deleted = await Product.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Product not found" });
+    res.json({ message: "Product deleted" });
   } catch (err) {
-    console.error("[DELETE /api/products/:id] failed:", err);
+    console.error("[DELETE /products/:id] error:", err);
     res.status(500).json({ error: "Failed to delete product" });
   }
 });
 
-// Import products from CSV (unchanged - already handles SKU properly)
-router.post("/import", upload.single("file"), async (req, res) => {
+// Import products (CSV upload)
+router.post("/import", writeLimiter, upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded. Use field name 'file'." });
-    }
+    if (!req.file) return res.status(400).json({ error: "No CSV file uploaded" });
 
     const csvString = req.file.buffer.toString("utf8");
-    const rows = parse(csvString, {
-      columns: true,
-      skip_empty_lines: true,
-      trim: true,
-    });
+    const rows = parse(csvString, { columns: true, skip_empty_lines: true, trim: true });
 
-    const required = ["sku", "name"];
-    const missingHeaders = required.filter((h) => !(h in rows[0] || {}));
-    if (missingHeaders.length) {
-      return res.status(400).json({ error: `Missing header(s): ${missingHeaders.join(", ")}` });
-    }
+    if (!rows.length) return res.status(400).json({ error: "CSV is empty" });
 
-    const report = {
-      total: rows.length,
-      inserted: 0,
-      updated: 0,
-      skipped: 0,
-      errors: [],
-    };
+    let inserted = 0,
+      updated = 0;
+    for (const row of rows) {
+      const { error, value } = productSchema.validate(row, { allowUnknown: true });
+      if (error) continue;
 
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      const sku = String(r.sku || "").trim();
-      const name = String(r.name || "").trim();
-      if (!sku || !name) {
-        report.skipped++;
-        report.errors.push({ row: i + 1, sku, reason: "Missing sku or name" });
-        continue;
-      }
-
-      const price = Number(r.price ?? 0);
-      const cost = Number(r.cost ?? 0);
-      const qty = Number(r.quantity ?? 0);
-      const reorderLevel = Number(r.reorderLevel ?? 5);
-
-      try {
-        const existing = await Product.findOne({ sku });
-        if (existing) {
-          existing.name = name;
-          existing.price = isNaN(price) ? existing.price : price;
-          existing.cost = isNaN(cost) ? existing.cost : cost;
-          existing.quantity = isNaN(qty) ? existing.quantity : qty;
-          existing.reorderLevel = isNaN(reorderLevel) ? existing.reorderLevel : reorderLevel;
-          await existing.save();
-          report.updated++;
-        } else {
-          await Product.create({
-            sku,
-            name,
-            price: isNaN(price) ? 0 : price,
-            cost: isNaN(cost) ? 0 : cost,
-            quantity: isNaN(qty) ? 0 : qty,
-            reorderLevel: isNaN(reorderLevel) ? 5 : reorderLevel,
-          });
-          report.inserted++;
-        }
-      } catch (err) {
-        report.skipped++;
-        report.errors.push({ row: i + 1, sku, reason: err.message });
+      const existing = await Product.findOne({ sku: value.sku });
+      if (existing) {
+        await Product.updateOne({ sku: value.sku }, value);
+        updated++;
+      } else {
+        await Product.create(value);
+        inserted++;
       }
     }
 
-    res.json({ ok: true, ...report });
-  } catch (e) {
-    console.error("[/api/products/import] failed:", e);
+    res.json({ ok: true, inserted, updated });
+  } catch (err) {
+    console.error("[POST /products/import] error:", err);
     res.status(500).json({ error: "Import failed" });
   }
 });
