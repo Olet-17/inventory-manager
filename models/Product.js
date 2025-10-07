@@ -9,9 +9,7 @@ const productSchema = new mongoose.Schema(
     },
     sku: {
       type: String,
-      required: false, // ✅ CHANGED: Make SKU optional for now
-      trim: true,
-      sparse: true, // Allows multiple nulls but enforces uniqueness for non-null
+      trim: true, // ✅ removed unique/sparse here
     },
     price: {
       type: Number,
@@ -45,12 +43,10 @@ const productSchema = new mongoose.Schema(
       default: "",
     },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
-// ✅ ADD: Create a unique index for SKU (but allow nulls)
+// ✅ Only ONE index definition (no duplicates)
 productSchema.index(
   { sku: 1 },
   {
